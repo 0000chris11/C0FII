@@ -49,4 +49,23 @@ public class MSQLP {
             ac.exception(e, sql);
         }
     }
+
+    public void selectDatabases(IActions ac){
+        try {
+            sql = "SHOW DATABASES";
+            query(ac);
+        } catch (SQLException e) {
+            ac.exception(e, sql);
+        }
+    }
+
+    public void close(){
+        try {
+            ps.close();
+            con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+    }
 }
