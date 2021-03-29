@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -417,7 +418,7 @@ public class MList {
             return returnValue;
       }
 
-      public static boolean isOnThisList(ArrayList<String> list, String text, boolean ignoreCase) {
+      public static boolean isOnThisList(List<String> list, String text, boolean ignoreCase) {
             boolean returnValue = false;
             for (String x : list) {
                   if (ignoreCase) {

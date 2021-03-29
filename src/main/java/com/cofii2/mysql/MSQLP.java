@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import com.cofii2.myInterfaces.IActions;
+import com.cofii2.myInterfaces.IUpdates;
 
 public class MSQLP {
 
@@ -22,7 +23,7 @@ public class MSQLP {
             e.printStackTrace();
         }
     }
-
+    //QUERYS
     private void query(IActions ac) throws SQLException{
         ps = con.prepareStatement(sql);
         rs = ps.executeQuery();
@@ -59,6 +60,27 @@ public class MSQLP {
         }
     }
 
+    public void selectTables(IActions ac){
+        try {
+            sql = "SHOW TABLES";
+            query(ac);
+        } catch (SQLException e) {
+            ac.exception(e, sql);
+        }
+    }
+    public void executeQuery(String sql, IActions ac){
+        try {
+            this.sql = sql;
+            query(ac);
+        } catch (SQLException e) {
+            ac.exception(e, sql);
+        }
+    }
+    //UPDATES
+    public void executeUpdate(String sql, IUpdates iu){
+        //NOT YET IMPLEMENTED
+    }
+    //CLOSE
     public void close(){
         try {
             ps.close();
