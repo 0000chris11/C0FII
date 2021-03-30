@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import com.cofii2.myInterfaces.IActions;
 import com.cofii2.myInterfaces.IUpdates;
+import com.cofii2.mysql.interfaces.IConnectionException;
 
 public class MSQLP {
 
@@ -23,8 +24,18 @@ public class MSQLP {
             e.printStackTrace();
         }
     }
-    //QUERYS
-    private void query(IActions ac) throws SQLException{
+
+    public MSQLP(Connect connect, IConnectionException ic) {
+        try {
+            con = DriverManager.getConnection(connect.URLConnection, connect.User, connect.Password);
+            ic.succes();
+        } catch (SQLException e) {
+            ic.exception(e);
+        } 
+    }
+
+    // QUERYS
+    private void query(IActions ac) throws SQLException {
         ps = con.prepareStatement(sql);
         rs = ps.executeQuery();
         if (ac != null) {
@@ -37,12 +48,12 @@ public class MSQLP {
                 ac.setData(rs, row);
             }
             ac.afterQuery(sql, rsValue);
-        }else{
+        } else {
             throw new NullPointerException("IAction can't be null");
         }
     }
 
-    public void selectUsers(IActions ac){
+    public void selectUsers(IActions ac) {
         try {
             sql = "SELECT USER FROM mysql.user";
             query(ac);
@@ -51,7 +62,7 @@ public class MSQLP {
         }
     }
 
-    public void selectDatabases(IActions ac){
+    public void selectDatabases(IActions ac) {
         try {
             sql = "SHOW DATABASES";
             query(ac);
@@ -60,7 +71,7 @@ public class MSQLP {
         }
     }
 
-    public void selectTables(IActions ac){
+    public void selectTables(IActions ac) {
         try {
             sql = "SHOW TABLES";
             query(ac);
@@ -68,7 +79,8 @@ public class MSQLP {
             ac.exception(e, sql);
         }
     }
-    public void executeQuery(String sql, IActions ac){
+
+    public void executeQuery(String sql, IActions ac) {
         try {
             this.sql = sql;
             query(ac);
@@ -76,18 +88,45 @@ public class MSQLP {
             ac.exception(e, sql);
         }
     }
-    //UPDATES
-    public void executeUpdate(String sql, IUpdates iu){
-        //NOT YET IMPLEMENTED
+
+    // UPDATES
+    private boolean update(IUpdates iu) throws SQLException {
+        ps = con.prepareStatement(sql);
+        int i = ps.executeUpdate();
+
+        if (iu != null) {
+            if (i > 0) {
+                iu.executeResultRowN();
+            } else {
+                iu.executeResult0();
+            }
+        }
+
+        if (i >= 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
-    //CLOSE
-    public void close(){
+
+    public boolean executeUpdate(String sql) {
+        this.sql = sql;
+        try {
+            return update(null);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // CLOSE
+    public void close() {
         try {
             ps.close();
             con.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        
+
     }
 }
