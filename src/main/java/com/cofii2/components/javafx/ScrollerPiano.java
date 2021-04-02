@@ -4,13 +4,12 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.media.AudioClip;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-public final class ScrollerPiano extends Pane{
+public final class ScrollerPiano extends ScrollPane{
     
     public static final int WK_AMOUNT = 52;
     public static final int BK_AMOUNT = 36;
@@ -44,6 +43,11 @@ public final class ScrollerPiano extends Pane{
         Group root = new Group();
         int wx = 0;
 
+        String path = getClass().getResource("/resources/AikA Zero - E1 Bells.wav").toString();
+        System.out.println("Path: " + path);
+        AudioClip ac = new AudioClip(path);
+        
+        
         int bkCount = 0;
         for (int a = 0; a < WK_AMOUNT; a++) {
             wks[a] = new Rectangle(wx, 0, WK_WIDTH, WK_HEIGHT);
@@ -54,6 +58,7 @@ public final class ScrollerPiano extends Pane{
             final int aa = a;
             wks[a].setOnMousePressed(e -> {
                 wks[aa].setFill(WK_FILL_PRESSED);
+                ac.play();
             });
 
             wks[a].setOnMouseReleased(e -> {
@@ -87,11 +92,6 @@ public final class ScrollerPiano extends Pane{
         root.getChildren().addAll(wks);
         root.getChildren().addAll(bks);
 
-        ScrollPane sp = new ScrollPane();
-        sp.setContent(root);
-        sp.setPrefWidth(800);
-        sp.setPrefHeight(160);
-
-        this.getChildren().add(sp);
+        this.setContent(root);
     }
 }
