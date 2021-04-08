@@ -17,6 +17,7 @@ public class NoteType {
     public static final double[] POSITION_0 = {19.0, 18.5, 18.0, 17.5, 17.0, 16.5, 16.0};//0
     //---------------------------------------------------------
     private String noteName;
+    private String semitoneType;
     private int noteType;
     private double positionY;
     //---------------------------------------------------------
@@ -43,9 +44,9 @@ public class NoteType {
      * @param noteType must be one of the NoteType PSF variable
      */
     public NoteType(String noteName, int noteType) {
-        
-        if(noteName.contains("#")){
+        if(noteName.contains("#") || noteName.contains("b")){
             this.noteName = Character.toString(noteName.charAt(0)) + Character.toString(noteName.charAt(2));
+            this.semitoneType = Character.toString(noteName.charAt(1));
         }else{
             this.noteName = noteName;
         }
@@ -88,6 +89,12 @@ public class NoteType {
     }
     public void setPositionY(double positionY) {
         this.positionY = positionY;
+    }
+    public String getSemitoneType() {
+        return semitoneType;
+    }
+    public void setSemitoneType(String semitoneType) {
+        this.semitoneType = semitoneType;
     }
 
     

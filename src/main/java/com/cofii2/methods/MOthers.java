@@ -7,9 +7,13 @@ package com.cofii2.methods;
 
 import com.cofii2.myInterfaces.ThreadAction;
 import com.cofii2.myInterfaces.ThreadLoopAction;
+
+import javafx.scene.control.Label;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JTextField;
@@ -24,36 +28,34 @@ public class MOthers {
             throw new IllegalStateException("Private Constructor");
       }
 
-      //+++++++++++++++++++++++++++++++++++++++++++++++++
+      // +++++++++++++++++++++++++++++++++++++++++++++++++
       /**
-       * Get a random number between the given parameters.
-       * If match-Random return 0.0 (the minimum value) then it'll return the min parameter value,
-       * and if Math.random return 1.0 (the max value) then it'll return the max value.
+       * Get a random number between the given parameters. If match-Random return 0.0
+       * (the minimum value) then it'll return the min parameter value, and if
+       * Math.random return 1.0 (the max value) then it'll return the max value.
        * 
        * @param min lowest in the range to return
        * @param max highest in the range to return
        * @return random value between min and max
        */
-      public static int getRandomNumber(int min, int max){
+      public static int getRandomNumber(int min, int max) {
             return (int) ((Math.random() * (max - min)) + min);
       }
-      
+
       private static String getStringAdjust(String text) {
             text = text.toUpperCase().trim();
             if (text.contains("_")) {
                   text = text.replaceAll("_", " ");
             }
             /*
-            if(text.contains(" ")){
-                  text = text.replaceAll(" ", "");
-            }
+             * if(text.contains(" ")){ text = text.replaceAll(" ", ""); }
              */
             return text;
       }
 
-      public static boolean getContainMatchFromStringToList(String text, ArrayList<String> list,
-              boolean caseSensitive, boolean trim, boolean adjust) {
-            //System.out.println("getContainMatchFromStringToList");
+      public static boolean getContainMatchFromStringToList(String text, ArrayList<String> list, boolean caseSensitive,
+                  boolean trim, boolean adjust) {
+            // System.out.println("getContainMatchFromStringToList");
             boolean returnValue = false;
 
             if (adjust) {
@@ -79,8 +81,8 @@ public class MOthers {
                         cont.trim();
                   }
 
-                  //System.out.println("\ttext: " + text);
-                  //System.out.println("\tcont: " + cont);
+                  // System.out.println("\ttext: " + text);
+                  // System.out.println("\tcont: " + cont);
                   if (text.contains(cont)) {
                         returnValue = true;
                   }
@@ -88,18 +90,19 @@ public class MOthers {
             return returnValue;
       }
 
-      public static boolean getEqualMatchFromStringToList(String text, ArrayList<String> list, int minus, boolean trim) {
-            //System.out.println("getEqualMatchFromStringToList+++++++++++");
-            //System.out.println("List size: " + list.size());
+      public static boolean getEqualMatchFromStringToList(String text, ArrayList<String> list, int minus,
+                  boolean trim) {
+            // System.out.println("getEqualMatchFromStringToList+++++++++++");
+            // System.out.println("List size: " + list.size());
             boolean returnValue = false;
             int count = 0;
             text = getStringAdjust(text);
             if (trim) {
                   text = text.trim();
             }
-            //System.out.println("\tText: " + text);
+            // System.out.println("\tText: " + text);
             for (String x : list) {
-                  //System.out.println("\tX: " + x);
+                  // System.out.println("\tX: " + x);
                   String cont = getStringAdjust(x);
                   if (trim) {
                         cont = cont.trim();
@@ -115,7 +118,7 @@ public class MOthers {
                   }
                   count++;
             }
-            //System.out.println("\t\tRETURN VALUE: " + returnValue);
+            // System.out.println("\t\tRETURN VALUE: " + returnValue);
             return returnValue;
       }
 
@@ -165,7 +168,7 @@ public class MOthers {
        * Get equal match from the same array (to detect no repited elements)
        *
        * @param array String array to search on
-       * @param trim trim elements
+       * @param trim  trim elements
        * @return elements match
        */
       public static boolean getEqualsMatchFromArray(String[] array, boolean trim) {
@@ -214,10 +217,10 @@ public class MOthers {
                   }
             }
 
-            return new Object[]{returnValue, A, B};
+            return new Object[] { returnValue, A, B };
       }
 
-      //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       public static void setThreadAction(int milis, ThreadAction ta) {
             new Thread(new Runnable() {
                   @Override
@@ -240,14 +243,14 @@ public class MOthers {
                   @Override
                   public void run() {
                         int c = 0;
-                        while(true){
+                        while (true) {
                               ta.action();
                               try {
                                     Thread.sleep(milis);
                               } catch (InterruptedException ex) {
                                     Logger.getLogger(MOthers.class.getName()).log(Level.SEVERE, null, ex);
                               }
-                              if(ta.keep(++c)){
+                              if (ta.keep(++c)) {
                                     break;
                               }
                         }
@@ -256,7 +259,45 @@ public class MOthers {
             }).start();
       }
 
-      //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      public static TimerTask getCustomTimerTask(Label label) {
+            return new TimerTask() {
+                  int msu = 0;
+                  int su = 0;
+                  int sd = 0;
+                  int mu = 0;
+
+                  @Override
+                  public void run() {
+                              msu++;
+                              // MILISECOND
+                              if (msu == 10) {
+                                    su++;
+                                    msu = 0;
+                              }
+                              // SECOND U
+                              if (su == 10) {
+                                    sd++;
+                                    su = 0;
+                              }
+                              // SECOND D
+                              if (sd == 6) {
+                                    mu++;
+                                    sd = 0;
+                              }
+                              // MINUTE U
+                              if (mu == 10) {
+                                    msu = 0;
+                                    su = 0;
+                                    sd = 0;
+                                    mu = 0;
+                              }
+                              label.setText((mu) + ":" + (sd) + (su) + ":" + (msu));
+                        
+                  }
+            };
+      }
+
+      // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       public static class Result {
 
             public boolean match;
@@ -273,29 +314,28 @@ public class MOthers {
       /**
        *
        * @param array JTextFields list
-       * @param trim trim elements
-       * @return Object containing boolean (match) and two Array that determine
-       * the position when they match
+       * @param trim  trim elements
+       * @return Object containing boolean (match) and two Array that determine the
+       *         position when they match
        */
-      public static ArrayList<Result> getEqualsMatchAndPositionFromArray(
-              JTextField[] array, boolean trim) {
+      public static ArrayList<Result> getEqualsMatchAndPositionFromArray(JTextField[] array, boolean trim) {
             boolean match = false;
 
             ArrayList<Result> res = new ArrayList<Result>();
-            //####################
+            // ####################
             List<JTextField> lis = Arrays.asList(array);
             ArrayList<JTextField> list = new ArrayList<JTextField>(lis);
-            //System.out.println("array length: " + array.length);
-            //System.out.println("list size: " + list.size());
+            // System.out.println("array length: " + array.length);
+            // System.out.println("list size: " + list.size());
 
             for (int a = 0; a < array.length; a++) {
-                  //System.out.println("Element " + (a + 1) + ": " + array[a].getText());
+                  // System.out.println("Element " + (a + 1) + ": " + array[a].getText());
                   if (!array[a].isVisible()) {
                         list.remove(a);
 
                   }
             }
-            //####################
+            // ####################
 
             for (int a = 0; a < list.size(); a++) {
                   String text = getStringAdjust(list.get(a).getText());
@@ -309,21 +349,22 @@ public class MOthers {
                                     cont = cont.trim();
                               }
 
-                              //System.out.println("####Comparing " + (a + 1) + " & " + (b + 1));
-                              //System.out.println("\t####text " + (a + 1) + ": " + text);
-                              //System.out.println("\t####cont " + (b + 1) + ": " + cont);
+                              // System.out.println("####Comparing " + (a + 1) + " & " + (b + 1));
+                              // System.out.println("\t####text " + (a + 1) + ": " + text);
+                              // System.out.println("\t####cont " + (b + 1) + ": " + cont);
                               if (!text.isEmpty()) {
                                     if (text.equalsIgnoreCase(cont)) {
-                                          //System.out.println("\t\tMATCH");
+                                          // System.out.println("\t\tMATCH");
                                           match = true;
                                           res.add(new Result(true, a, b));
                                     } else {
-                                          if (match != true);
-                                          //System.out.println("\t\tUNMATCH");
+                                          if (match != true)
+                                                ;
+                                          // System.out.println("\t\tUNMATCH");
                                           res.add(new Result(false, a, b));
                                     }
                               } else {
-                                    //System.out.println("\t\tUNMATCH");
+                                    // System.out.println("\t\tUNMATCH");
                                     match = false;
                                     res.add(new Result(false, a, b));
                               }
