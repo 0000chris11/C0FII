@@ -1,8 +1,10 @@
-package com.cofii2.components.javafx;
+package com.cofii2.components.javafx.sheet;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -12,17 +14,23 @@ import javafx.scene.shape.Ellipse;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Shape;
+
 import java.awt.image.BufferedImage;
 
 public class Sheet extends Group {
 
-    private int lineSpacing = 12;
+    private double lineSpacing = 12;
+    private double notePadding = lineSpacing * 2;
+
     private int lineWidth = 100;
     private Color stroke = Color.BLACK;
 
     private Line[] lines = new Line[5];
     private NoteType noteType;
 
+    private List<NoteType> noteList = new ArrayList<>();
+    private List<NoteShape<Shape>> noteShapes = new ArrayList<>();
     // ----------------------------------------------
     public void addNote(NoteType noteType) {
         this.noteType = noteType;
@@ -30,9 +38,13 @@ public class Sheet extends Group {
         double positionY = noteType.getPositionY();
 
         double centerY = lineSpacing * positionY;
-
         double centerX = (double) lineWidth / 2;
-        double radiusY = (double) lineSpacing / 2;
+
+        if (!noteList.isEmpty()) {
+            noteShapes.get(0).getObject()
+        }
+
+        double radiusY = lineSpacing / 2;
         double radiusX = radiusY + (radiusY / 5);
 
         // ADDING NOTE
@@ -43,28 +55,37 @@ public class Sheet extends Group {
         }
         if (noteType.getSemitoneType() != null) {
             ImageView imageView = null;
+            Image image = null;
+
+            double width = radiusX * 2;
+            double height = radiusY * 2;
+            height += height / 5;
+
+            // SHARP, FLAT OR EXCEPTION
             if (noteType.getSemitoneType().equals("#")) {
-                // BufferedImage BufferedImage = ImageIO.read();
-                // InputStream inputStream =
-                double width = radiusX * 2;
-                double height = radiusY * 2;
-                double x = (centerX + radiusX + lineSpacing) - width;
-                double y = centerY - radiusY;
-                
-                Image image = new Image(getClass().getResource("/resources/sharp.png").toString(), width, height, true,true);
-                imageView = new ImageView(image);
-                
-                ellipse.setCenterX(ellipse.getCenterX() - width);
-                imageView.setX(x);
-                imageView.setY(y);
+                image = new Image(getClass().getResource("/resources/sharp.png").toString(), width, height, true, true);
+            } else if (noteType.getSemitoneType().equalsIgnoreCase("b")) {
+                image = new Image(getClass().getResource("/resources/flat.png").toString(), width, height, true, true);
+            } else {
+                throw new IllegalArgumentException("Wrong note name");
             }
 
+            imageView = new ImageView(image);
+            double x = ellipse.getCenterX() + radiusX + (radiusX / 5);
+            double y = centerY - radiusY;
+
+            imageView.setX(x);
+            imageView.setY(y - (height / 5));
+
             getChildren().addAll(ellipse, imageView);
-        }else{
+            noteList.add(noteType);
+            noteShapes.add(new NoteShape<>(ellipse, imageView));
+        } else {
             getChildren().add(ellipse);
+            noteList.add(noteType);
+            noteShapes.add(new NoteShape<>(ellipse, null));
         }
 
-        
     }
 
     public String getNote() {
