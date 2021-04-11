@@ -41,7 +41,7 @@ public class Sheet extends Group {
         double centerX = (double) lineWidth / 2;
 
         if (!noteList.isEmpty()) {
-            noteShapes.get(0).getObject()
+            //noteShapes.get(0).getObject()
         }
 
         double radiusY = lineSpacing / 2;
@@ -107,11 +107,11 @@ public class Sheet extends Group {
     }
 
     // ----------------------------------------------
-    public int getLineSpacing() {
+    public double getLineSpacing() {
         return lineSpacing;
     }
 
-    public void setLineSpacing(int lineSpacing) {
+    public void setLineSpacing(double lineSpacing) {
         this.lineSpacing = lineSpacing;
     }
 

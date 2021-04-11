@@ -1,5 +1,6 @@
 package com.cofii2.mysql;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -119,6 +120,52 @@ public class MSQLP {
         }
     }
 
+    //CALLABLE
+    /**
+     * pickCall method calls and existing procedure in the database 
+     * pass in the constructor of this class
+     * 
+     * @param name name of the procedure
+     * @param procedureName parameters of the procedure
+     * @return return false if is an update or true if CallableStatement return a ResultTest
+     */
+    public boolean pickCall(String name, Object... procedureName){
+        boolean returnValue = false;
+        try{
+            //BUILDING CALLABLE STATEMENT
+            sql = "{CALL " + name + "(";
+            StringBuilder sb = new StringBuilder(sql);
+            int length = procedureName.length;
+            if(length != 0){
+                for(int a = 0; a < length; a++){
+                    sb.append("?");
+                    if(a != length - 1){
+                        sb.append(", ");
+                    }
+                }
+                sb.append(")}");
+            }else{
+                sb.append(")}");
+            }
+            //SET THE CALLABLESTATEMENT
+            
+            CallableStatement cs = con.prepareCall(sb.toString());
+            for(int a = 0; a < length; a++){
+                if(procedureName[a] instanceof String){
+                    cs.setString((a + 1), procedureName[a].toString());
+                }else if(procedureName[a] instanceof Integer){
+                    cs.setInt((a + 1), (Integer) procedureName[a]);
+                }
+            }
+            returnValue = cs.execute();
+            cs.close();
+
+        }catch(SQLException ex){
+            ex.printStackTrace();
+            returnValue = false;
+        }
+        return returnValue;
+    }
     // CLOSE
     public void close() {
         try {
