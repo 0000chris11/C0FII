@@ -11,9 +11,10 @@ import java.sql.SQLException;
  *
  * @author C0FII
  */
-public interface IUpdates {
+public interface IUpdates extends ISQL{
       
       public void executeResultRowN();
       public void executeResult0();
-      public void exception(SQLException ex);
+      public void callUpdate();
+
 }

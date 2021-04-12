@@ -435,6 +435,7 @@ public class MList {
       }
 
       public static <T> boolean isTheLengthTheSameForAll(ArrayList<T[]> list) {
+            
             boolean same = true;
             int col = list.size();
             int row = 0;
@@ -448,5 +449,18 @@ public class MList {
                   }
             }
             return same;
+      }
+
+      public static <T extends Object> boolean isThisArrayEmpty(T[] array){
+            boolean returnValue = false;
+            for(int a = 0;a < array.length;a ++){
+                  if(array[a] == null){
+                        returnValue = true;
+                  }else{
+                        returnValue = false;
+                        break;
+                  }
+            }
+            return returnValue;
       }
 }
