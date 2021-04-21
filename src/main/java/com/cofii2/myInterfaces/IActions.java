@@ -16,6 +16,8 @@ public interface IActions extends ISQL{
 
       public void beforeQuery();
       public void setData(ResultSet rs, int row) throws SQLException;
-      public void getOutParameters(Object[] outParameters);
       public void afterQuery(String query, boolean rsValue);
+      public default void exception(SQLException ex, String sql){
+            ex.printStackTrace();
+      }
 }

@@ -22,9 +22,19 @@ public class MSQLP {
 
     private ResultSet rs;
 
+    public MSQLP(String url) {
+        try {
+            con = DriverManager.getConnection(url);
+        } catch (SQLException e) {
+    
+            e.printStackTrace();
+        }
+    }
+
     public MSQLP(Connect connect) {
         try {
             con = DriverManager.getConnection(connect.URLConnection, connect.User, connect.Password);
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -76,6 +86,7 @@ public class MSQLP {
             query(ac);
         } catch (SQLException e) {
             ac.exception(e, sql);
+            
         }
     }
 
@@ -107,7 +118,7 @@ public class MSQLP {
     }
 
     // UPDATES
-    private boolean update(IUpdates iu) throws SQLException {
+    private void update(IUpdates iu) throws SQLException {
         ps = con.prepareStatement(sql);
         int i = ps.executeUpdate();
 
@@ -118,18 +129,13 @@ public class MSQLP {
                 iu.executeResult0();
             }
         }
-
-        if (i >= 0) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     public boolean executeUpdate(String sql) {
         this.sql = sql;
         try {
-            return update(null);
+            update(null);
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
