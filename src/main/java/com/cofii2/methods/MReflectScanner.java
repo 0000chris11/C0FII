@@ -12,7 +12,7 @@ import java.util.Scanner;
 public class MReflectScanner {
 
     private Method[] methods;
-    private String
+    //private String
     private String methodName;
     private StringBuilder messageSelect = new StringBuilder("Select: \n");
     private StringBuilder parametersSelect = new StringBuilder(methodName);

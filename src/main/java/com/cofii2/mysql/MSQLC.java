@@ -42,7 +42,7 @@ public class MSQLC {
     /**
      * Connect to the given Connect class
      * 
-     * @param connect
+     * @param connect the url, user and password
      */
     public MSQLC(Connect connect) {
         try {

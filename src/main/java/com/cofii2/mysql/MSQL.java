@@ -465,7 +465,7 @@ public class MSQL {
                   if (iu == null) {
                         ex.printStackTrace();
                   }
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
             }
       }
 
@@ -511,7 +511,7 @@ public class MSQL {
                   if (iu == null) {
                         ex.printStackTrace();
                   }
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
             }
       }
 
@@ -523,7 +523,7 @@ public class MSQL {
                   if (iu == null) {
                         ex.printStackTrace();
                   }
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
             }
       }
 
@@ -541,7 +541,7 @@ public class MSQL {
                   if (iu == null) {
                         ex.printStackTrace();
                   }
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
             }
       }
 
@@ -614,7 +614,7 @@ public class MSQL {
                   if (iu == null) {
                         ex.printStackTrace();
                   }
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
             }
       }
 
@@ -654,7 +654,7 @@ public class MSQL {
                         if (iu == null) {
                               ex.printStackTrace();
                         }
-                        iu.exception(ex);
+                        iu.exception(ex, sql);
                   }
             } else {
                   System.out.println("\tColumn and newValues don't match");
@@ -685,7 +685,7 @@ public class MSQL {
                   if (iu == null) {
                         ex.printStackTrace();
                   }
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
             }
       }
 
@@ -719,7 +719,7 @@ public class MSQL {
                   if (iu == null) {
                         ex.printStackTrace();
                   }
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
             }
       }
 
@@ -739,7 +739,7 @@ public class MSQL {
                   if (iu == null) {
                         ex.printStackTrace();
                   }
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
             }
       }
 
@@ -774,7 +774,7 @@ public class MSQL {
                   if (iu == null) {
                         ex.printStackTrace();
                   }
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
             }
       }
 
@@ -815,7 +815,7 @@ public class MSQL {
                   if (iu == null) {
                         ex.printStackTrace();
                   }
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
             }
       }
 
@@ -825,7 +825,7 @@ public class MSQL {
                   sql = "ALTER TABLE " + table + " DROP COLUMN " + column;
                   update(iu);
             } catch (SQLException ex) {
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
                   Logger.getLogger(MSQL.class.getName()).log(Level.SEVERE, null, ex);
             }
       }

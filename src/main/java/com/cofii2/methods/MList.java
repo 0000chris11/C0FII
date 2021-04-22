@@ -6,6 +6,9 @@
 package com.cofii2.methods;
 
 import com.cofii2.stores.CC;
+
+import javafx.collections.ObservableList;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -419,6 +422,22 @@ public class MList {
       }
 
       public static boolean isOnThisList(List<String> list, String text, boolean ignoreCase) {
+            boolean returnValue = false;
+            for (String x : list) {
+                  if (ignoreCase) {
+                        if (x.equalsIgnoreCase(text)) {
+                              returnValue = true;
+                        }
+                  } else {
+                        if (x.equals(text)) {
+                              returnValue = true;
+                        }
+                  }
+            }
+            return returnValue;
+      }
+
+      public static boolean isOnThisList(ObservableList<String> list, String text, boolean ignoreCase) {
             boolean returnValue = false;
             for (String x : list) {
                   if (ignoreCase) {

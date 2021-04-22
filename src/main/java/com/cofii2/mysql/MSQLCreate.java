@@ -67,7 +67,7 @@ public class MSQLCreate extends SQLInit {
                   update(iu);
 
             } catch (SQLException ex) {
-                  iu.exception(ex);
+                  iu.exception(ex, sql);
             }
 
       }

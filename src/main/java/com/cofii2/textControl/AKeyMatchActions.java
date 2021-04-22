@@ -17,7 +17,7 @@ public abstract class AKeyMatchActions {
       
       /**
        * Override this method for establishing an action before implementing the action of the matches
-       * @param e 
+       * @param e source of the action
        */
       public void beforeActions(EventObject e) {}
       //++++++++++++++++++++++++++++++++++++++++++++
