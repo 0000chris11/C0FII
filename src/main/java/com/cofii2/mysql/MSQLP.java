@@ -108,6 +108,15 @@ public class MSQLP {
         }
     }
 
+    public void selectColumns(String table, IActions ac){
+        try {
+            sql = "SHOW COLUMNS FROM " + table;
+            query(ac);
+        } catch (SQLException e) {
+            ac.exception(e, sql);
+        }
+    }
+
     public void executeQuery(String sql, IActions ac) {
         try {
             this.sql = sql;
