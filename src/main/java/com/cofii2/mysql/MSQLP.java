@@ -116,6 +116,14 @@ public class MSQLP {
             ac.exception(e, sql);
         }
     }
+    public void selectData(String table, IActions ac){
+        try {
+            sql = "SELECT * FROM " + table;
+            query(ac);
+        } catch (SQLException e) {
+            ac.exception(e, sql);
+        }
+    }
 
     public void executeQuery(String sql, IActions ac) {
         try {
