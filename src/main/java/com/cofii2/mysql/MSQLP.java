@@ -22,11 +22,13 @@ public class MSQLP {
 
     private ResultSet rs;
 
+    private IUpdates iu;
+
     public MSQLP(String url) {
         try {
             con = DriverManager.getConnection(url);
         } catch (SQLException e) {
-    
+
             e.printStackTrace();
         }
     }
@@ -63,8 +65,6 @@ public class MSQLP {
                 ac.setData(rs, row);
             }
             ac.afterQuery(sql, rsValue);
-        } else {
-            throw new NullPointerException("IAction can't be null");
         }
     }
 
@@ -86,7 +86,7 @@ public class MSQLP {
             query(ac);
         } catch (SQLException e) {
             ac.exception(e, sql);
-            
+
         }
     }
 
@@ -108,7 +108,7 @@ public class MSQLP {
         }
     }
 
-    public void selectColumns(String table, IActions ac){
+    public void selectColumns(String table, IActions ac) {
         try {
             sql = "SHOW COLUMNS FROM " + table;
             query(ac);
@@ -116,7 +116,8 @@ public class MSQLP {
             ac.exception(e, sql);
         }
     }
-    public void selectData(String table, IActions ac){
+
+    public void selectData(String table, IActions ac) {
         try {
             sql = "SELECT * FROM " + table;
             query(ac);
@@ -135,8 +136,11 @@ public class MSQLP {
     }
 
     // UPDATES
-    private void update(IUpdates iu) throws SQLException {
-        ps = con.prepareStatement(sql);
+    private void update(IUpdates iu, String queryType) throws SQLException {
+        if (queryType.equals("SQL")) {
+            ps = con.prepareStatement(sql);
+        }  
+
         int i = ps.executeUpdate();
 
         if (iu != null) {
@@ -146,12 +150,127 @@ public class MSQLP {
                 iu.executeResult0();
             }
         }
+        sb = null;
+    }
+
+    /**
+     * Set the IUpdate for the next update statement
+     * 
+     * @param iu IUpdates interface required
+     */
+    private void setIUpdates(IUpdates iu) {
+        this.iu = iu;
+    }
+
+    /**
+     * Insert on the given table
+     * 
+     * @param table  table to insert on
+     * @param values the new values for the table (only String and Integer allowed)
+     */
+    public boolean insert(String table, Object[] values) {
+        try {
+            sb = new StringBuilder("INSERT INTO " + table + " VALUES(");
+            for (int a = 0; a < values.length; a++) {
+                sb.append("?");
+                if (a != values.length - 1) {
+                    sb.append(", ");
+                }
+            }
+            sb.append(")");
+            ps = con.prepareStatement(sb.toString());
+            for (int a = 0; a < values.length; a++) {
+                if (values[a] != null) {
+                    if (values[a] instanceof String) {
+                        ps.setString((a + 1), values[a].toString());
+                    } else if (values[a] instanceof Integer) {
+                        ps.setInt((a + 1), (int) values[a]);
+                    } else {
+                        throw new IllegalArgumentException("C0FII: Only String and Integer");
+                    }
+                } else {
+                    ps.setObject((a + 1), null);
+                }
+            }
+
+            update(iu, "SB");
+            return true;
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Delete a row from a table
+     * 
+     * @param table      table where the row will be deleted
+     * @param column     Where this column...
+     * @param valueWhere where the value match on the given column
+     * @return true if row has been deleted succesfully
+     */
+    public boolean deleteRow(String table, String column, Object valueWhere) {
+        try {
+            sql = "DELETE FROM " + table + " WHERE " + column + " = ";
+            if (valueWhere instanceof String) {
+                sql += "\"" + valueWhere.toString() + "\"";
+            } else if (valueWhere instanceof Integer) {
+                sql += (int) valueWhere;
+            }
+
+            update(iu, "SQL");
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteRow(String table, Object[] valuesWhere) {
+        try {
+            sql = "SHOW COLUMNS FROM " + table;
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            int length = valuesWhere.length;
+            sb = new StringBuilder("DELETE FROM " + table + " WHERE ");
+            while (rs.next()) {
+                String column = rs.getString(1);
+                sb.append(column + " = ?");
+                if (length != rs.getRow()) {
+                    sb.append(" AND ");
+                }
+            }
+            System.out.println("TEST AT DELETEROW SQL: " + sb.toString());
+            ps = con.prepareStatement(sb.toString());
+            for (int a = 0; a < length; a++) {
+                if (valuesWhere[a] != null) {
+                    if (valuesWhere[a] instanceof String) {
+                        ps.setString((a + 1), valuesWhere[a].toString());
+                    } else if (valuesWhere[a] instanceof Integer) {
+                        ps.setInt((a + 1), (int) valuesWhere[a]);
+                    } else {
+                        throw new IllegalArgumentException("C0FII: Only String or Integer allowed");
+                    }
+                } else {
+                    ps.setObject((a + 1), null);
+                }
+            }
+
+            update(iu, "SB");
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean executeUpdate(String sql) {
         this.sql = sql;
         try {
-            update(null);
+            update(null, "SQL");
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
