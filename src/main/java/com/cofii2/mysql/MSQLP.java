@@ -24,6 +24,8 @@ public class MSQLP {
 
     private IUpdates iu;
 
+    private static final String ERROR_MESSAGE = "C0FII: Only String or Integer allowed";
+
     public MSQLP(String url) {
         try {
             con = DriverManager.getConnection(url);
@@ -51,8 +53,8 @@ public class MSQLP {
         }
     }
 
-    // QUERYS
-    private void query(IActions ac) throws SQLException {
+    // QUERYS DEFAULT ACTION-----------------------------------
+    private void queryAction(IActions ac) throws SQLException {
         ps = con.prepareStatement(sql);
         rs = ps.executeQuery();
         if (ac != null) {
@@ -68,7 +70,7 @@ public class MSQLP {
         }
     }
 
-    private void callQuery(IActions ac) throws SQLException {
+    private void callQueryAction(IActions ac) throws SQLException {
         ac.beforeQuery();
         int row = 0;
         boolean rsValue = false;
@@ -80,66 +82,10 @@ public class MSQLP {
         ac.afterQuery(sql, rsValue);
     }
 
-    public void selectUsers(IActions ac) {
-        try {
-            sql = "SELECT USER FROM mysql.user";
-            query(ac);
-        } catch (SQLException e) {
-            ac.exception(e, sql);
-
-        }
-    }
-
-    public void selectDatabases(IActions ac) {
-        try {
-            sql = "SHOW DATABASES";
-            query(ac);
-        } catch (SQLException e) {
-            ac.exception(e, sql);
-        }
-    }
-
-    public void selectTables(IActions ac) {
-        try {
-            sql = "SHOW TABLES";
-            query(ac);
-        } catch (SQLException e) {
-            ac.exception(e, sql);
-        }
-    }
-
-    public void selectColumns(String table, IActions ac) {
-        try {
-            sql = "SHOW COLUMNS FROM " + table;
-            query(ac);
-        } catch (SQLException e) {
-            ac.exception(e, sql);
-        }
-    }
-
-    public void selectData(String table, IActions ac) {
-        try {
-            sql = "SELECT * FROM " + table;
-            query(ac);
-        } catch (SQLException e) {
-            ac.exception(e, sql);
-        }
-    }
-
-    public void executeQuery(String sql, IActions ac) {
-        try {
-            this.sql = sql;
-            query(ac);
-        } catch (SQLException e) {
-            ac.exception(e, sql);
-        }
-    }
-
-    // UPDATES
     private void update(IUpdates iu, String queryType) throws SQLException {
         if (queryType.equals("SQL")) {
             ps = con.prepareStatement(sql);
-        }  
+        }
 
         int i = ps.executeUpdate();
 
@@ -162,6 +108,109 @@ public class MSQLP {
         this.iu = iu;
     }
 
+    // QUERYS--------------------------------------------------
+    public void selectUsers(IActions ac) {
+        try {
+            sql = "SELECT USER FROM mysql.user";
+            queryAction(ac);
+        } catch (SQLException e) {
+            ac.exception(e, sql);
+
+        }
+    }
+
+    public void selectDatabases(IActions ac) {
+        try {
+            sql = "SHOW DATABASES";
+            queryAction(ac);
+        } catch (SQLException e) {
+            ac.exception(e, sql);
+        }
+    }
+
+    public void selectTables(IActions ac) {
+        try {
+            sql = "SHOW TABLES";
+            queryAction(ac);
+        } catch (SQLException e) {
+            ac.exception(e, sql);
+        }
+    }
+
+    public void selectColumns(String table, IActions ac) {
+        try {
+            sql = "SHOW COLUMNS FROM " + table;
+            queryAction(ac);
+        } catch (SQLException e) {
+            ac.exception(e, sql);
+        }
+    }
+
+    private void selectColumnsWhereOnly(String table, int length) {
+        try {
+            sql = "SHOW COLUMNS FROM " + table;
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String column = rs.getString(1);
+                sb.append(column + " = ?");
+                if (length != rs.getRow()) {
+                    sb.append(" AND ");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void selectColumnSetAndWhere(String table, int length) {
+        try {
+            sql = "SHOW COLUMNS FROM " + table;
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            String[] columns = new String[length];
+            int c = 0;
+            while (rs.next()) {
+                columns[c] = rs.getString(1);
+                sb.append(columns[c] + " = ?");
+                if (length != rs.getRow()) {
+                    sb.append(", ");
+                }
+                c++;
+            }
+            sb.append(" WHERE ");
+            for (int a = 0; a < length; a++) {
+                sb.append(columns[a] + " = ?");
+                if (a != length - 1) {
+                    sb.append(" AND ");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void selectData(String table, IActions ac) {
+        try {
+            sql = "SELECT * FROM " + table;
+            queryAction(ac);
+        } catch (SQLException e) {
+            ac.exception(e, sql);
+        }
+    }
+
+    public void executeQuery(String sql, IActions ac) {
+        try {
+            this.sql = sql;
+            queryAction(ac);
+        } catch (SQLException e) {
+            ac.exception(e, sql);
+        }
+    }
+
+    // UPDATES------------------------------------------------
     /**
      * Insert on the given table
      * 
@@ -229,19 +278,14 @@ public class MSQLP {
 
     public boolean deleteRow(String table, Object[] valuesWhere) {
         try {
-            sql = "SHOW COLUMNS FROM " + table;
-            ps = con.prepareStatement(sql);
-            rs = ps.executeQuery();
-
             int length = valuesWhere.length;
+            selectColumnsWhereOnly(table, length);
+
             sb = new StringBuilder("DELETE FROM " + table + " WHERE ");
-            while (rs.next()) {
-                String column = rs.getString(1);
-                sb.append(column + " = ?");
-                if (length != rs.getRow()) {
-                    sb.append(" AND ");
-                }
-            }
+            /*
+             * while (rs.next()) { String column = rs.getString(1); sb.append(column +
+             * " = ?"); if (length != rs.getRow()) { sb.append(" AND "); } }
+             */
             System.out.println("TEST AT DELETEROW SQL: " + sb.toString());
             ps = con.prepareStatement(sb.toString());
             for (int a = 0; a < length; a++) {
@@ -251,7 +295,7 @@ public class MSQLP {
                     } else if (valuesWhere[a] instanceof Integer) {
                         ps.setInt((a + 1), (int) valuesWhere[a]);
                     } else {
-                        throw new IllegalArgumentException("C0FII: Only String or Integer allowed");
+                        throw new IllegalArgumentException(ERROR_MESSAGE);
                     }
                 } else {
                     ps.setObject((a + 1), null);
@@ -267,6 +311,56 @@ public class MSQLP {
         }
     }
 
+    public boolean updateRow(String table, Object[] valuesWhere, Object[] newValues) {
+        int lengthVW = valuesWhere.length;
+        int lengthVL = newValues.length;
+        if (lengthVW == lengthVL) {
+            try {
+                sb = new StringBuilder("UPDATE " + table + " SET ");
+                selectColumnSetAndWhere(table, lengthVW);
+
+                ps = con.prepareStatement(sb.toString());
+                for (int a = 0; a < lengthVL * 2; a++) {
+                    if (a <= lengthVL - 1) {
+                        if (newValues[a] != null) {
+                            if (newValues[a] instanceof String) {
+                                ps.setString((a + 1), newValues[a].toString());
+                            } else if (newValues[a] instanceof Integer) {
+                                ps.setInt((a + 1), (int) newValues[a]);
+                            } else {
+                                throw new IllegalArgumentException(ERROR_MESSAGE);
+                            }
+                        } else {
+                            ps.setObject((a + 1), null);
+                        }
+                    } else {
+                        int b = a - lengthVL;
+                        if (valuesWhere[b] != null) {
+                            if (valuesWhere[b] instanceof String) {
+                                ps.setString((a + 1), valuesWhere[b].toString());
+                            } else if (valuesWhere[b] instanceof Integer) {
+                                ps.setInt((a + 1), (int) valuesWhere[b]);
+                            } else {
+                                throw new IllegalArgumentException(ERROR_MESSAGE);
+                            }
+                        } else {
+                            ps.setObject((a + 1), null);
+                        }
+                    }
+                }
+
+                update(iu, "SB");
+                return true;
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            throw new IllegalArgumentException(
+                    "C0FII: Both valuesWhere and newValues array need to have the same size");
+        }
+    }
+
     public boolean executeUpdate(String sql) {
         this.sql = sql;
         try {
@@ -278,7 +372,7 @@ public class MSQLP {
         }
     }
 
-    // CLOSE
+    // CLOSE---------------------------------------
     public void close() {
         try {
             ps.close();
