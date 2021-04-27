@@ -26,6 +26,7 @@ public class MSQLP {
 
     private static final String ERROR_MESSAGE = "C0FII: Only String or Integer allowed";
 
+    // -------------------------------------------------------
     public MSQLP(String url) {
         try {
             con = DriverManager.getConnection(url);
@@ -198,6 +199,21 @@ public class MSQLP {
             queryAction(ac);
         } catch (SQLException e) {
             ac.exception(e, sql);
+        }
+    }
+
+    public void selectDataWhere(String table, String column, Object valueWhere, IActions ac) {
+        try {
+            sql = "SELECT * FROM " + table + " WHERE " + column + " = ";
+            if (valueWhere instanceof String) {
+                sql += " \"" + valueWhere.toString() + "\"";
+            } else if (valueWhere instanceof Integer) {
+                sql += valueWhere.toString();
+            }
+
+            queryAction(ac);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
