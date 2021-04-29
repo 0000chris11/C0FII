@@ -16,5 +16,5 @@ public interface IUpdates extends ISQL{
       public void executeResultRowN();
       public void executeResult0();
       public void callUpdate();
-
+      public void exceptionDataToLong(SQLException ex);
 }

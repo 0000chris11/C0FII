@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import com.cofii2.myInterfaces.IActions;
+import com.cofii2.myInterfaces.IDataTooLong;
 import com.cofii2.myInterfaces.IUpdates;
 import com.cofii2.mysql.interfaces.IConnectionException;
 
@@ -23,6 +24,7 @@ public class MSQLP {
     private ResultSet rs;
 
     private IUpdates iu;
+    private IDataTooLong idata;
 
     private static final String ERROR_MESSAGE = "C0FII: Only String or Integer allowed";
 
@@ -83,21 +85,32 @@ public class MSQLP {
         ac.afterQuery(sql, rsValue);
     }
 
-    private void update(IUpdates iu, String queryType) throws SQLException {
-        if (queryType.equals("SQL")) {
-            ps = con.prepareStatement(sql);
-        }
-
-        int i = ps.executeUpdate();
-
-        if (iu != null) {
-            if (i > 0) {
-                iu.executeResultRowN();
-            } else {
-                iu.executeResult0();
+    private boolean update(IUpdates iu, String queryType) throws SQLException {
+        try {
+            if (queryType.equals("SQL")) {
+                ps = con.prepareStatement(sql);
             }
+
+            int i = ps.executeUpdate();
+            if (iu != null) {
+                if (i > 0) {
+                    iu.executeResultRowN();
+                } else {
+                    iu.executeResult0();
+                }
+            }
+            sb = null;
+            return true;
+        } catch (SQLException e) {
+            if (e.getMessage().contains("Data too long for column")) {
+                if (idata != null) {
+                    idata.exception(e);
+                } else {
+                    e.printStackTrace();
+                }
+            }
+            return false;
         }
-        sb = null;
     }
 
     /**
@@ -105,8 +118,12 @@ public class MSQLP {
      * 
      * @param iu IUpdates interface required
      */
-    private void setIUpdates(IUpdates iu) {
+    public void setIUpdates(IUpdates iu) {
         this.iu = iu;
+    }
+
+    public void setIDataToLong(IDataTooLong idata) {
+        this.idata = idata;
     }
 
     // QUERYS--------------------------------------------------
@@ -149,7 +166,7 @@ public class MSQLP {
 
     private void selectColumnsWhereOnly(String table, int length) {
         try {
-            sql = "SHOW COLUMNS FROM " + table;
+            sb = new StringBuilder("SHOW COLUMNS FROM " + table);
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
 
@@ -258,8 +275,7 @@ public class MSQLP {
                 }
             }
 
-            update(iu, "SB");
-            return true;
+            return update(iu, "SB");
         } catch (SQLException e) {
 
             e.printStackTrace();
@@ -284,8 +300,8 @@ public class MSQLP {
                 sql += (int) valueWhere;
             }
 
-            update(iu, "SQL");
-            return true;
+            
+            return update(iu, "SQL");
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -298,10 +314,7 @@ public class MSQLP {
             selectColumnsWhereOnly(table, length);
 
             sb = new StringBuilder("DELETE FROM " + table + " WHERE ");
-            /*
-             * while (rs.next()) { String column = rs.getString(1); sb.append(column +
-             * " = ?"); if (length != rs.getRow()) { sb.append(" AND "); } }
-             */
+
             System.out.println("TEST AT DELETEROW SQL: " + sb.toString());
             ps = con.prepareStatement(sb.toString());
             for (int a = 0; a < length; a++) {
@@ -318,8 +331,7 @@ public class MSQLP {
                 }
             }
 
-            update(iu, "SB");
-            return true;
+            return update(iu, "SB");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -365,8 +377,8 @@ public class MSQLP {
                     }
                 }
 
-                update(iu, "SB");
-                return true;
+                
+                return update(iu, "SB");
             } catch (SQLException e) {
                 e.printStackTrace();
                 return false;
@@ -380,8 +392,8 @@ public class MSQLP {
     public boolean executeUpdate(String sql) {
         this.sql = sql;
         try {
-            update(null, "SQL");
-            return true;
+            
+            return update(null, "SQL");
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
