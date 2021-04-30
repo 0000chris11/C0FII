@@ -25,9 +25,15 @@ public class MSQLP {
 
     private IUpdates iu;
     private IDataTooLong idata;
-
+    //------------------------------------------
     private static final String ERROR_MESSAGE = "C0FII: Only String or Integer allowed";
+    //ORDER BY------------------------------------------
+    public static final int DEFAULT_ORDER = 0;
+    public static final int ASC_ORDER = 1;
+    public static final int DESC_ORDER = 2;
+    public static final int MOST_USE_ORDER = 3;
 
+    private int order = DEFAULT_ORDER;
     // -------------------------------------------------------
     public MSQLP(String url) {
         try {
@@ -161,6 +167,32 @@ public class MSQLP {
             queryAction(ac);
         } catch (SQLException e) {
             ac.exception(e, sql);
+        }
+    }
+
+    public void setDistinctOrder(int order){
+        if(order >= 0 && order < 4){
+            this.order = order;
+        }else{
+            throw new IllegalArgumentException("C0FII: Not supported order");
+        }
+    }
+
+    public void selectDistinctColumn(String table, String column, IActions ac){
+        try {
+            if(order == DEFAULT_ORDER){
+                sql = "SELECT DISTINCT " + column + " FROM " + table;
+            }else if(order == ASC_ORDER){
+                sql = "SELECT DISTINCT " + column + " FROM " + table + " ORDER BY " + column;
+            }else if(order == DESC_ORDER){
+                sql = "SELECT DISTINCT " + column + " FROM " + table + " ORDER BY " + column + " DESC";
+            }else if(order == MOST_USE_ORDER){
+                sql = "SELECT " + column + " FROM " + table + " GROUP BY(" + column + ") ORDER BY COUNT(" + column + ") DESC";
+            }
+            
+            queryAction(ac);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 

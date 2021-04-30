@@ -34,19 +34,27 @@ public class MList {
             throw new IllegalStateException("Private Constructor");
       }
 
-      //+++++++++++++++++++++++++++++++++++++++++++++++++++++
-      public static void add_SetDefaultListModel(
-              JList<String> lst, ArrayList<String> list, boolean b) {
+      // +++++++++++++++++++++++++++++++++++++++++++++++++++++
+      /**
+       * Obsolete method. Used for old project (TimeStamp)
+       * 
+       * @deprecated
+       */
+      public static void add_SetDefaultListModel(JList<String> lst, ArrayList<String> list, boolean b) {
             DefaultListModel<String> dlm = new DefaultListModel<String>();
             lst.setModel(dlm);
             if (b == true) {
                   for (int a = 0; a < list.size(); a++) {
                         dlm.addElement(list.get(a));
-
                   }
             }
       }
 
+      /**
+       * Obsolete method. Used for old project (TimeStamp)
+       * 
+       * @deprecated
+       */
       public static void add_SetListModel(JComboBox cb, ArrayList<String> list) {
             cb.removeAllItems();
             for (int a = 0; a < list.size(); a++) {
@@ -55,10 +63,11 @@ public class MList {
 
       }
 
-      public static ArrayList<String> mixRowList(
-              ArrayList<String> list, ArrayList<String> list2, String conn) {
-
-            ArrayList<String> list3 = new ArrayList<String>();
+      /**
+       * Mix two list into one; concated by conn variable
+       */
+      public static List<String> mixRowList(List<String> list, List<String> list2, String conn) {
+            List<String> list3 = new ArrayList<>();
             for (int c = 0; c < list.size(); c++) {
                   list3.add(list.get(c) + conn + list2.get(c));
             }
@@ -66,12 +75,12 @@ public class MList {
       }
 
       public static void unTagList(ArrayList<String> list) {
-            //Separate elements with ; (TAG)
+            // Separate elements with ; (TAG)
             String sub1;
             String sub2;
-            //System.out.println("MList Size Before: " + list.size());
+            // System.out.println("MList Size Before: " + list.size());
             for (int a = 0; a < list.size(); a++) {
-                  //System.out.println("- - - - - - " + a + " >" + list.get(a));
+                  // System.out.println("- - - - - - " + a + " >" + list.get(a));
                   if (list.get(a).contains(";")) {
                         sub1 = list.get(a).substring(0, list.get(a).indexOf(";"));
                         sub2 = list.get(a).substring(list.get(a).indexOf(";") + 2, list.get(a).length());
@@ -84,7 +93,7 @@ public class MList {
                         a--;
                   }
             }
-            //++++++++++++++++++++++++++++++++++++++++++++++
+            // ++++++++++++++++++++++++++++++++++++++++++++++
             ArrayList<String> copy = new ArrayList<String>();
             copy.addAll(list);
 
@@ -97,7 +106,42 @@ public class MList {
             list.addAll(copy);
       }
 
-      //+++++++++++++++++++++++++++++++++++++++++++++++++++++
+      public static List<String> removeDuplicates(List<String> list) {
+            //int minus = 0;
+            /**
+             * AAAA
+             * BBBB
+             * CCCC
+             * DDDD
+             * AAAA ---
+             * EEEE
+             */
+            for (int a = 0; a < list.size(); a++) {
+                  String element = list.get(a);
+                  for (int b = a; b < list.size(); b++) {
+                        String element2 = list.get(b);
+                        if (a != b) {
+                              if (element.equals(element2)) {
+                                    list.remove(b);
+                                    //minus++;
+                              }
+                        }
+                  }
+            }
+            return list;
+      }
+
+      // +++++++++++++++++++++++++++++++++++++++++++++++++++++
+      public static void printFor(List<String> list) {
+            System.out.println(CC.GREEN + "\nPrinting for..." + CC.RESET);
+            if (list.isEmpty()) {
+                  System.out.println("\tthe list has no elements");
+            } else {
+                  for (int a = 0; a < list.size(); a++) {
+                        System.out.println("\telement " + a + ": [" + list.get(a) + "]");
+                  }
+            }
+      }
       public static void printFor(ArrayList<String> list) {
             System.out.println(CC.GREEN + "\nPrinting for..." + CC.RESET);
             if (list.isEmpty()) {
@@ -198,7 +242,7 @@ public class MList {
       }
 
       public static <T> void printForClassFields(T[] array) {
-            System.out.println();        
+            System.out.println();
             for (int a = 0; a < array.length; a++) {
                   Field[] fields = array[a].getClass().getDeclaredFields();
                   System.out.println("\n" + (a + 1) + ": " + array[a].getClass().toString());
@@ -209,7 +253,7 @@ public class MList {
                         System.out.println("\tname: " + name);
                         System.out.println("\ttype: " + type);
                         try {
-                              //Object value = fields[0].get(name);
+                              // Object value = fields[0].get(name);
                               Object value = fields[f].get(array[a]);
                               if (value != null) {
                                     System.out.println("\tvalue:" + value);
@@ -222,8 +266,9 @@ public class MList {
                   }
             }
       }
+
       public static <T> void printForClassFields(T[] array, String message) {
-            System.out.println("\n" + message);        
+            System.out.println("\n" + message);
             for (int a = 0; a < array.length; a++) {
                   Field[] fields = array[a].getClass().getDeclaredFields();
                   System.out.println("\n" + (a + 1) + ": " + array[a].getClass().toString());
@@ -234,7 +279,7 @@ public class MList {
                         System.out.println("\tname: " + name);
                         System.out.println("\ttype: " + type);
                         try {
-                              //Object value = fields[0].get(name);
+                              // Object value = fields[0].get(name);
                               Object value = fields[f].get(array[a]);
                               if (value != null) {
                                     System.out.println("\tvalue:" + value);
@@ -297,10 +342,10 @@ public class MList {
             }
       }
 
-      //++++++++++++++++++++++++++++++++++++++++++++
+      // ++++++++++++++++++++++++++++++++++++++++++++
       public static boolean areTheyDuplicatedElementsOnList(ArrayList<String> list) {
             boolean returnValue = false;
-            Set<String> set = new HashSet<String>(list);//FIND ABOUT ----------------------------
+            Set<String> set = new HashSet<String>(list);// FIND ABOUT ----------------------------
             if (set.size() < list.size()) {
                   returnValue = true;
             }
@@ -319,9 +364,9 @@ public class MList {
             return returnValue;
       }
 
-      //++++++++++++++++++++++++++++++++++++++++++++
+      // ++++++++++++++++++++++++++++++++++++++++++++
       public static <T> T[] getListToArray(Class<T> clazz, ArrayList<T> list) {
-            //T[] returnObject = (T[]) Array.newInstance(clas, doubleArray.length);
+            // T[] returnObject = (T[]) Array.newInstance(clas, doubleArray.length);
             T[] array = null;
             if (list.size() > 0) {
                   array = (T[]) Array.newInstance(clazz, list.size());
@@ -454,7 +499,7 @@ public class MList {
       }
 
       public static <T> boolean isTheLengthTheSameForAll(ArrayList<T[]> list) {
-            
+
             boolean same = true;
             int col = list.size();
             int row = 0;
@@ -470,12 +515,12 @@ public class MList {
             return same;
       }
 
-      public static <T extends Object> boolean isThisArrayEmpty(T[] array){
+      public static <T extends Object> boolean isThisArrayEmpty(T[] array) {
             boolean returnValue = false;
-            for(int a = 0;a < array.length;a ++){
-                  if(array[a] == null){
+            for (int a = 0; a < array.length; a++) {
+                  if (array[a] == null) {
                         returnValue = true;
-                  }else{
+                  } else {
                         returnValue = false;
                         break;
                   }
