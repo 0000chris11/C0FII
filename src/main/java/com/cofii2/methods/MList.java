@@ -7,11 +7,13 @@ package com.cofii2.methods;
 
 import com.cofii2.stores.CC;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -38,6 +40,9 @@ public class MList {
       /**
        * Obsolete method. Used for old project (TimeStamp)
        * 
+       * @param lst  for display
+       * @param list elements
+       * @param b    re-add
        * @deprecated
        */
       public static void add_SetDefaultListModel(JList<String> lst, ArrayList<String> list, boolean b) {
@@ -53,6 +58,8 @@ public class MList {
       /**
        * Obsolete method. Used for old project (TimeStamp)
        * 
+       * @param cb   to set them on
+       * @param list the elements
        * @deprecated
        */
       public static void add_SetListModel(JComboBox cb, ArrayList<String> list) {
@@ -65,6 +72,11 @@ public class MList {
 
       /**
        * Mix two list into one; concated by conn variable
+       * 
+       * @param list  left elements
+       * @param list2 right elements
+       * @param conn  concat between list and list2
+       * @deprecated
        */
       public static List<String> mixRowList(List<String> list, List<String> list2, String conn) {
             List<String> list3 = new ArrayList<>();
@@ -107,14 +119,9 @@ public class MList {
       }
 
       public static List<String> removeDuplicates(List<String> list) {
-            //int minus = 0;
+            // int minus = 0;
             /**
-             * AAAA
-             * BBBB
-             * CCCC
-             * DDDD
-             * AAAA ---
-             * EEEE
+             * AAAA BBBB CCCC DDDD AAAA --- EEEE
              */
             for (int a = 0; a < list.size(); a++) {
                   String element = list.get(a);
@@ -123,7 +130,7 @@ public class MList {
                         if (a != b) {
                               if (element.equals(element2)) {
                                     list.remove(b);
-                                    //minus++;
+                                    // minus++;
                               }
                         }
                   }
@@ -142,6 +149,7 @@ public class MList {
                   }
             }
       }
+
       public static void printFor(ArrayList<String> list) {
             System.out.println(CC.GREEN + "\nPrinting for..." + CC.RESET);
             if (list.isEmpty()) {
@@ -343,10 +351,21 @@ public class MList {
       }
 
       // ++++++++++++++++++++++++++++++++++++++++++++
-      public static boolean areTheyDuplicatedElementsOnList(ArrayList<String> list) {
+      public static boolean areTheyDuplicatedElementsOnList(List<String> list) {
             boolean returnValue = false;
-            Set<String> set = new HashSet<String>(list);// FIND ABOUT ----------------------------
+            Set<String> set = new HashSet<>(list);
             if (set.size() < list.size()) {
+                  returnValue = true;
+            }
+            return returnValue;
+      }
+
+      public static boolean areTheyDuplicatedElementsOnList(ObservableList<String> list) {
+            boolean returnValue = false;
+            List<String> list2 = new ArrayList<>(list);
+            list2.removeIf(e -> e.equals(""));
+            Set<String> set = new HashSet<>(list2);
+            if (set.size() < list2.size()) {
                   returnValue = true;
             }
             return returnValue;
@@ -456,12 +475,42 @@ public class MList {
             return returnValue;
       }
 
-      public static <T> boolean isOnThisArray(T[] array, Object ob) {
+      public static <T> boolean isOnThisList(T[] array, Object ob, boolean ignoreCase) {
             boolean returnValue = false;
             for (T x : array) {
-                  if (x.equals(ob)) {
-                        returnValue = true;
+                  if (!ignoreCase) {
+                        if (x.equals(ob)) {
+                              returnValue = true;
+                              break;
+                        }
+                  } else if(x instanceof String && ob instanceof String){
+                        if (x.toString().equalsIgnoreCase(ob.toString())) {
+                              returnValue = true;
+                              break;
+                        }
+                  }else{
+                        throw new IllegalArgumentException("C0FII: not supported function");
                   }
+
+            }
+            return returnValue;
+      }
+
+      public static boolean isOnThisList(String[] array, String str, boolean ignoreCase) {
+            boolean returnValue = false;
+            for (String x : array) {
+                  if (!ignoreCase) {
+                        if (x.equals(str)) {
+                              returnValue = true;
+                              break;
+                        }
+                  } else {
+                        if (x.equalsIgnoreCase(str)) {
+                              returnValue = true;
+                              break;
+                        }
+                  }
+
             }
             return returnValue;
       }
@@ -472,10 +521,12 @@ public class MList {
                   if (ignoreCase) {
                         if (x.equalsIgnoreCase(text)) {
                               returnValue = true;
+                              break;
                         }
                   } else {
                         if (x.equals(text)) {
                               returnValue = true;
+                              break;
                         }
                   }
             }
@@ -488,10 +539,12 @@ public class MList {
                   if (ignoreCase) {
                         if (x.equalsIgnoreCase(text)) {
                               returnValue = true;
+                              break;
                         }
                   } else {
                         if (x.equals(text)) {
                               returnValue = true;
+                              break;
                         }
                   }
             }

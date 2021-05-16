@@ -10,6 +10,7 @@ com\cofii2\components\swing\VO.class
 com\cofii2\myListeners\MultiSelectionAction.class
 com\cofii2\mysql\MSQL1.class
 com\cofii2\mysql\MSQLP.class
+com\cofii2\components\javafx\TextFieldAutoC.class
 com\cofii2\components\swing\ComboBoxCustom.class
 com\cofii2\components\swing\ButtonGradient.class
 com\cofii2\methods\MOthers.class
@@ -63,6 +64,7 @@ com\cofii2\methods\MOthers$3.class
 com\cofii2\components\swing\Clock.class
 com\cofii2\stores\IntObject.class
 com\cofii2\myAClasses\MLayout.class
+com\cofii2\myInterfaces\IDataTooLong.class
 com\cofii2\methods\MTable.class
 com\cofii2\textControl\TextControlData.class
 com\cofii2\methods\MList.class
