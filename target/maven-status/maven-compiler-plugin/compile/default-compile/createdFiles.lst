@@ -1,3 +1,4 @@
+com\cofii2\components\javafx\MessagePopup.class
 com\cofii2\mysql\store\CallParam.class
 com\cofii2\components\javafx\sheet\NoteType.class
 com\cofii2\stores\Int_StringList.class
@@ -34,6 +35,7 @@ com\cofii2\custom\TableCellRenderer$1.class
 com\cofii2\stores\DStringObject.class
 com\cofii2\myInterfaces\IUpdates.class
 com\cofii2\myListeners\preClass\MultiSelection.class
+com\cofii2\components\javafx\ToggleGroupD.class
 com\cofii2\methods\MComp$3.class
 com\cofii2\myListeners\MultiSelectionProperty.class
 com\cofii2\components\swing\MenuBarCustom.class
@@ -59,8 +61,10 @@ com\cofii2\components\javafx\piano\Note.class
 com\cofii2\components\javafx\sheet\Sheet.class
 com\cofii2\methods\MKey.class
 com\cofii2\components\swing\ToggleButtonGradient.class
+com\cofii2\components\javafx\MessageWindow.class
 com\cofii2\components\swing\MenuItemCustom.class
 com\cofii2\methods\MOthers$3.class
+com\cofii2\components\javafx\TooltipCustom.class
 com\cofii2\components\swing\Clock.class
 com\cofii2\stores\IntObject.class
 com\cofii2\myAClasses\MLayout.class

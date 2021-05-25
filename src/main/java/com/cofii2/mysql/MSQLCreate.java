@@ -13,6 +13,7 @@ import com.cofii2.stores.IntString;
 import com.cofii2.stores.TString;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -40,14 +41,15 @@ public class MSQLCreate extends SQLInit {
       public void createTable(String table, String[] columnsNames, String[] columnsTypes, IUpdates iu) {
             try {
                   this.table = table;
-                  sql = "CREATE TABLE " + table.replaceAll(" ", "_") + "(";
+                  sb = new StringBuilder("CREATE TABLE " + table.replaceAll(" ", "_") + "(");
+                  //sql = "CREATE TABLE " + table.replaceAll(" ", "_") + "(";
 
                   int length = columnsNames.length;
                   int removeTW = 0;
                   int removeDF = 0;
                   int removeNLL = 0;
                   for (int a = 0; a < length; a++) {
-                        sql += columnsNames[a] + " " + columnsTypes[a];
+                        sb.append(columnsNames[a] + " " + columnsTypes[a]);
 
                         typeWidths(removeTW, a);
                         defaults(removeDF, a);
@@ -55,19 +57,19 @@ public class MSQLCreate extends SQLInit {
 
                         extra(a);
                         if (a != length - 1) {
-                              sql += ", ";
+                              sb.append(", ");
                         }
                   }
 
                   primaryKeys();
                   foreignKeys();
 
-                  sql += ")";
-                  System.out.println(CC.CYAN + "\nSQL: " + sql + CC.RESET);
+                  sb.append(")");
+                  System.out.println(CC.CYAN + "\nSQL: " + sb.toString() + CC.RESET);
                   update(iu);
 
             } catch (SQLException ex) {
-                  iu.exception(ex, sql);
+                  iu.exception(ex, sb.toString());
             }
 
       }
@@ -80,7 +82,7 @@ public class MSQLCreate extends SQLInit {
                               int index = x.index1;
                               int width = x.index2;
                               if (index == (a + 1)) {
-                                    sql += "(" + width + ")";
+                                    sb.append("(" + width + ")");
                                     break;
                               }
                         }
@@ -98,12 +100,12 @@ public class MSQLCreate extends SQLInit {
                               try {//TEST FOR DEFAULT VALUE HAVING QUOTES
                                     Integer.parseInt(string);
                                     if (index == (a + 1)) {
-                                          sql += " DEFAULT " + string;
+                                          sb.append(" DEFAULT " + string);
                                           break;
                                     }
                               } catch (NumberFormatException ex) {
                                     if (index == (a + 1)) {
-                                          sql += " DEFAULT \"" + string + "\"";
+                                          sb.append(" DEFAULT \"" + string + "\"");
                                           break;
                                     }
                               };
@@ -119,7 +121,7 @@ public class MSQLCreate extends SQLInit {
                         int index = x.index;
                         boolean bool = x.bool;
                         if (index == (a + 1) && !bool) {
-                              sql += " NOT NULL";
+                              sb.append(" NOT NULL");
                               break;
                         }
                   }
@@ -132,13 +134,13 @@ public class MSQLCreate extends SQLInit {
                   int col = extra.index1;
                   if (extraType.equals("AUTO_INCREMENT")) {
                         if (col == a + 1) {
-                              sql += " AUTO_INCREMENT";
+                              sb.append(" AUTO_INCREMENT");
                         }
                   } else if (extraType.equals("IDENTITY")) {
                         int iden1 = extra.index2;
                         int iden2 = extra.index3;
                         if (col == a + 1) {
-                              sql += " IDENTITY(" + iden1 + ", " + iden2 + ")";
+                              sb.append(" IDENTITY(" + iden1 + ", " + iden2 + ")");
                         }
                   }
             }
@@ -146,39 +148,39 @@ public class MSQLCreate extends SQLInit {
 
       private void primaryKeys() {
             if (!listPK.isEmpty()) {
-                  sql += ", PRIMARY KEY(";
+                  sb.append(", PRIMARY KEY(");
                   for (int a = 0; a < listPK.size(); a++) {
-                        sql += listPK.get(a);
+                        sb.append(listPK.get(a));
 
                         if (a != listPK.size() - 1) {
-                              sql += ", ";
+                              sb.append(", ");
                         }
                   }
-                  sql += ")";
+                  sb.append(")");
             }
       }
 
       private void foreignKeys() {
             if (!listFK.isEmpty()) {
                   String tableR = listFK.get(0).string2;
-                  sql += ", CONSTRAINT fk_" + table + "__" + tableR + " FOREIGN KEY(";
+                  sb.append(", CONSTRAINT fk_" + table + "__" + tableR + " FOREIGN KEY(");
                   //TEST CONSTRAINTS
                   for (int a = 0; a < listFK.size(); a++) {
-                        sql += listFK.get(a).string1;
+                        sb.append(listFK.get(a).string1);
 
                         if (a != listFK.size() - 1) {
-                              sql += ", ";
+                              sb.append(", ");
                         }
                   }
-                  sql += ") REFERENCES " + tableR + "(";
+                  sb.append(") REFERENCES " + tableR + "(");
                   for (int a = 0; a < listFK.size(); a++) {
-                        sql += listFK.get(a).string3;
+                        sb.append(listFK.get(a).string3);
 
                         if (a != listFK.size() - 1) {
-                              sql += ", ";
+                              sb.append(", ");
                         }
                   }
-                  sql += ")";
+                  sb.append(")");
             }
       }
 
@@ -186,7 +188,6 @@ public class MSQLCreate extends SQLInit {
       public void addTypesWidth(DInt width) {
             listWidth.add(width);
       }
-
       public void setAllTypesWidths(DInt[] widths) {
             listWidth.clear();
             for (DInt x : widths) {
@@ -197,7 +198,6 @@ public class MSQLCreate extends SQLInit {
       public void addAllowsNull(IntBoolean nullColumn) {
             listNulls.add(nullColumn);
       }
-
       public void setAllAllowsNulls(IntBoolean[] nullsColumns) {
             listNulls.clear();
             for (IntBoolean x : nullsColumns) {
@@ -208,7 +208,6 @@ public class MSQLCreate extends SQLInit {
       public void addDefault(IntString defaultt) {
             listDefaults.add(defaultt);
       }
-
       public void setAllDefaults(IntString[] defaultt) {
             listDefaults.clear();
             for (IntString x : defaultt) {
@@ -220,7 +219,6 @@ public class MSQLCreate extends SQLInit {
             extraType = "AUTO_INCREMENT";
             extra = new TInt(col, 0, 0);
       }
-
       public void setIdentity(int col, DInt idenValues) {
             extraType = "IDENTITY";
             extra = new TInt(col, idenValues.index1, idenValues.index2);
@@ -229,15 +227,13 @@ public class MSQLCreate extends SQLInit {
       public void addPrimaryKey(String PK) {
             listPK.add(PK);
       }
-
       public void addAllPrimaryKeys(String[] PKS) {
             listPK.clear();
             for (String x : PKS) {
                   listPK.add(x);
             }
       }
-
-      public void addAllPrimaryKeys(ArrayList<String> PKS) {
+      public void addAllPrimaryKeys(List<String> PKS) {
             listPK.clear();
             for (String x : PKS) {
                   listPK.add(x);
@@ -264,7 +260,6 @@ public class MSQLCreate extends SQLInit {
                   }
             }
       }
-
       public void addAllForeignKeys(TString[] FKS) {
             listFK.clear();
             for (TString x : FKS) {
@@ -288,8 +283,7 @@ public class MSQLCreate extends SQLInit {
                   }
             }
       }
-      
-      public void addAllForeignKeys(ArrayList<TString> FKS) {
+      public void addAllForeignKeys(List<TString> FKS) {
             listFK.clear();
             for (TString x : FKS) {
                   if (listFK.isEmpty()) {

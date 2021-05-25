@@ -15,16 +15,22 @@ import javafx.scene.control.ToggleGroup;
 
 public class ToggleGroupD<T extends ToggleButton> {
 
-    public final List<T> toggleGroup = new ArrayList<>();
+    private boolean countVisible = false;
+
+    private final List<T> toggleGroup = new ArrayList<>();
 
     // ----------------------------------------------
     private void groupAction(ActionEvent e) {
-        System.out.println("groupAction HAPPEN");
         T btn = (T) e.getSource();
 
         if (btn.isSelected()) {
             for (int b = 0; b < toggleGroup.size(); b++) {
                 if (b != toggleGroup.indexOf(btn)) {
+                    if (!countVisible) {
+                        if (!toggleGroup.get(b).isVisible()) {
+                            toggleGroup.get(b).setSelected(false);
+                        }
+                    }
                     if (toggleGroup.get(b).isSelected()) {
                         toggleGroup.get(b).setSelected(false);
                     }
@@ -35,9 +41,18 @@ public class ToggleGroupD<T extends ToggleButton> {
     }
 
     // ----------------------------------------------
-    
     public ToggleGroupD(T... elements) {
         toggleGroup.addAll(Arrays.asList(elements));
         toggleGroup.forEach(e -> e.addEventHandler(ActionEvent.ACTION, this::groupAction));
     }
+    // ----------------------------------------------
+
+    public boolean getCountVisible() {
+        return countVisible;
+    }
+
+    public void setCountVisible(boolean countVisible) {
+        this.countVisible = countVisible;
+    }
+
 }

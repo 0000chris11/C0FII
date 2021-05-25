@@ -21,8 +21,10 @@ import java.util.logging.Logger;
  * @author C0FII
  */
 class SQLInit {
+
       public Connection con;
       public String sql;
+      public StringBuilder sb;
       public Statement stt;
       public PreparedStatement pstt;
       public ResultSet rs;
