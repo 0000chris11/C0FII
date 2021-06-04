@@ -6,6 +6,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.cofii2.myInterfaces.IActions;
 import com.cofii2.myInterfaces.IDataTooLong;
@@ -71,7 +73,7 @@ public class MSQLP {
     private void queryAction(IActions ac, int sqlOp) throws SQLException {
         if (sqlOp == SQL) {
             ps = con.prepareStatement(sql);
-        } else if(sqlOp == STRING_BUILDER){
+        } else if (sqlOp == STRING_BUILDER) {
             ps = con.prepareStatement(sb.toString());
         }
 
@@ -116,6 +118,7 @@ public class MSQLP {
                 }
             }
             sb = null;
+            iu = null;
             return true;
         } catch (SQLException e) {
             if (e.getMessage().contains("Data too long for column")) {
@@ -124,6 +127,8 @@ public class MSQLP {
                 } else {
                     e.printStackTrace();
                 }
+            } else {
+                e.printStackTrace();
             }
             return false;
         }
@@ -277,6 +282,48 @@ public class MSQLP {
         }
     }
 
+    public ResultSet selectRow(String table, String columnWhere, Object valueWhere) {
+        try {
+            if (valueWhere instanceof Integer) {
+                sql = "SELECT * FROM " + table + " WHERE " + columnWhere + " = " + valueWhere;
+            } else {
+                sql = "SELECT * FROM " + table + " WHERE " + columnWhere + " = '" + valueWhere + "'";
+            }
+
+            queryAction(null, SQL);
+
+            return rs;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    public Object[] selectValues(String table, String columnWhere, Object valueWhere) {
+        try {
+            if (valueWhere instanceof Integer) {
+                sql = "SELECT " + columnWhere + " FROM " + table + " WHERE " + columnWhere + " = " + valueWhere;
+            } else {
+                sql = "SELECT " + columnWhere + " FROM " + table + " WHERE " + columnWhere + " = '" + valueWhere + "'";
+            }
+            List<Object> returnValue = new ArrayList<>();
+            while(rs.next()){
+                if (valueWhere instanceof Integer) {
+                    returnValue.add(rs.getInt(1));
+                }else if(valueWhere instanceof String){
+                    returnValue.add(rs.getString(1));
+                }
+            }
+
+            queryAction(null, SQL);
+            return returnValue.toArray(new String[returnValue.size()]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new Object[0];
+        }
+    }
+
     public void selectColumns(String table, IActions ac) {
         try {
             sql = "SHOW COLUMNS FROM " + table;
@@ -348,10 +395,16 @@ public class MSQLP {
                             + "WHERE (t.constraint_type='PRIMARY KEY' OR t.constraint_type= 'FOREIGN KEY') AND ");
 
             /*
-                SELECT t.table_name, t.constraint_type, k.ORDINAL_POSITION, k.column_name, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.table_constraints t JOIN information_schema.key_column_usage k USING(constraint_name,table_schema,table_name) WHERE (t.constraint_type='PRIMARY KEY' OR t.constraint_type= 'FOREIGN KEY') AND t.table_schema =
-            */
+             * SELECT t.table_name, t.constraint_type, k.ORDINAL_POSITION, k.column_name,
+             * k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM
+             * information_schema.table_constraints t JOIN
+             * information_schema.key_column_usage k
+             * USING(constraint_name,table_schema,table_name) WHERE
+             * (t.constraint_type='PRIMARY KEY' OR t.constraint_type= 'FOREIGN KEY') AND
+             * t.table_schema =
+             */
 
-            whereSet("t.table_schema", " OR ",databases, false);
+            whereSet("t.table_schema", " OR ", databases, false);
             queryAction(ac, NONE);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -386,6 +439,7 @@ public class MSQLP {
                 }
             }
             sb.append(")");
+            System.out.println("SQL INSERT: " + sb.toString());
             ps = con.prepareStatement(sb.toString());
             for (int a = 0; a < values.length; a++) {
                 if (values[a] != null) {
@@ -404,6 +458,16 @@ public class MSQLP {
             return update(iu, "SB");
         } catch (SQLException e) {
 
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteTable(String table) {
+        try {
+            sql = "DROP TABLE " + table;
+            return update(iu, "SQL");
+        } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }

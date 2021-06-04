@@ -9,6 +9,11 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Popup;
 
+/**
+ * Class that extends a popup. Use for the display of a dropdown popup of the elements given.
+ * 
+ * @author C0FII
+ */
 public class PopupAutoC extends Popup{
     
     public static final int STARTS_WITH = 0;
@@ -26,7 +31,7 @@ public class PopupAutoC extends Popup{
     private ListViewSkin<?> skin;
     private VirtualFlow<?> vf;
     private String[] lvOriginalItems;
-    //--------------------------------------------
+    //LISTENERS FUNC--------------------------------------------
     private void showPopup(){
         Bounds sb = tfParent.localToScreen(tfParent.getBoundsInLocal());
         if(sideOption == BOTTOM_SIDE){
@@ -36,7 +41,6 @@ public class PopupAutoC extends Popup{
         }
         
     }
-    
     private String getAfterTag(String text) {
         if (!text.isEmpty() && text.contains("; ")) {
             text = text.substring(text.lastIndexOf("; ") + 2, text.length());
@@ -45,7 +49,6 @@ public class PopupAutoC extends Popup{
         //System.out.println("getAfterTag TEXT: " + text);
         return text;
     }
-
     private void listScrollControl(KeyEvent e){
         if (skin == null) {
             skin = new ListViewSkin<>(lv);
@@ -61,7 +64,7 @@ public class PopupAutoC extends Popup{
                 lv.getSelectionModel().select(--selected);
             }
 
-            int firstVC = vf.getFirstVisibleCell().getIndex();
+            int firstVC = vf.getFirstVisibleCell().getIndex();//NULL ERROR
             int lastVC = vf.getLastVisibleCell().getIndex();
             if (selected >= lastVC || selected <= firstVC) {
                 //System.out.println("SCROLLING");
@@ -70,7 +73,15 @@ public class PopupAutoC extends Popup{
 
         }
     }
-    
+    private void listScrollControlSimpleWay(KeyEvent e){
+        int selected = lv.getSelectionModel().getSelectedIndex();
+        if (e.getCode() == KeyCode.DOWN){
+            lv.getSelectionModel().select(++selected);
+        }else if(e.getCode() == KeyCode.UP){
+            lv.getSelectionModel().select(--selected);
+
+        }
+    }
     private void search(){
         //lv.setVisible(true);
         showPopup();
@@ -110,19 +121,17 @@ public class PopupAutoC extends Popup{
 
     private void tfParentKeyReleased(KeyEvent e){
         if(lvOriginalItems != null){
-            listScrollControl(e);
-
+            //listScrollControl(e);
+            listScrollControlSimpleWay(e);
             if ((e.getCode().isLetterKey() || e.getCode() == KeyCode.BACK_SPACE || e.getCode() == KeyCode.SPACE)
                     && lvOriginalItems.length > 0) {
                         search();
                     }
         }
     }
-    private void tfParentFocusesProperty(boolean newV){
-        if (!newV || !lv.isFocused()) {
-            //lv.setVisible(false);
+    private void tfParentFocusedProperty(boolean newValue){
+        if (!newValue || !lv.isFocused()) {//CAN'T HIDE IF LV IS FOCUSED
             hide();
-            //setParentHeight(closeHeight);
         }
     }
     private void lvSelectionListener(String newValue){
@@ -142,16 +151,22 @@ public class PopupAutoC extends Popup{
             }
         }
     }
-    //--------------------------------------------
+    private void lvFocusedProperty(boolean newValue){
+        if(!newValue || !tfParent.isFocused()){//CAN'T HIDE IF TFPARENT IS FOCUSED
+            hide();
+        }
+    }
+    //INIT--------------------------------------------
     public void init(){
         getContent().add(lv);
 
         tfParent.addEventHandler(KeyEvent.KEY_RELEASED, this::tfParentKeyReleased);
-        tfParent.focusedProperty().addListener((obs, oldV, newV) -> tfParentFocusesProperty(newV));
+        tfParent.focusedProperty().addListener((obs, oldV, newV) -> tfParentFocusedProperty(newV));
         lv.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> lvSelectionListener(newV));
+        lv.focusedProperty().addListener((obs, oldV, newV) -> lvFocusedProperty(newV));
 
         lv.setPrefHeight(200);
-        lv.setPrefWidth(-1);
+        lv.setPrefWidth(tfParent.getPrefHeight());
 
         setWidth(-1);
         setHeight(-1);
@@ -166,8 +181,7 @@ public class PopupAutoC extends Popup{
         lv.getItems().addAll(lvOriginalItems);
         init();
     }
-    //--------------------------------------------
-
+    //GET & SETTERS--------------------------------------------
     public int getSearchOption() {
         return searchOption;
     }

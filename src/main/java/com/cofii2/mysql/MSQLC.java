@@ -15,7 +15,7 @@ import com.cofii2.myInterfaces.IUpdates;
 import com.cofii2.mysql.interfaces.IConnectionException;
 
 /**
- * Class for the creation of CallableStatement (UNFINISHED)
+ * Class for the creation of CallableStatement
  * 
  * @author C0FII
  */

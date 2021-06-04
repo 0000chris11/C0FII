@@ -61,7 +61,7 @@ class SQLInit {
       
       public void update(IUpdates iu) throws SQLException{
             stt = con.createStatement();
-            int i = stt.executeUpdate(sql);
+            int i = stt.executeUpdate(sql != null ? sql: sb.toString());
 
             if (iu != null) {
                   if (i > 0) {

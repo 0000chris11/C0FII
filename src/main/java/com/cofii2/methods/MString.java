@@ -26,16 +26,16 @@ public class MString {
       //+++++++++++++++++++++++++++++++++++++++++
       public static String getCustomFormattedString(String text) {
             if (text.contains("/")) {
-                  text = text.replaceAll("/", "%Slash%");
+                  text = text.replace("/", "%fslash%");
             }
             if (text.contains("<")) {
-                  text = text.replaceAll("<", "%Bracket%");
+                  text = text.replace("<", "%Bracket%");
             }
             if (text.contains("?")) {
                   text = text.replace("?", "%Question%");
             }
             if (text.contains(": ")) {
-                  text = text.replaceAll(": ", "%2d%");
+                  text = text.replace(": ", "%2d%");
 
             }
             return text;

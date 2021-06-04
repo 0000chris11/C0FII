@@ -20,29 +20,30 @@ import java.util.List;
  * @author C0FII
  */
 public class MSQLCreate extends SQLInit {
-      
+
       private String table;
 
-      private ArrayList<DInt> listWidth = new ArrayList<DInt>();
-      private ArrayList<IntBoolean> listNulls = new ArrayList<IntBoolean>();
-      private ArrayList<IntString> listDefaults = new ArrayList<IntString>();
+      private ArrayList<DInt> listWidth = new ArrayList<>();
+      private ArrayList<IntBoolean> listNulls = new ArrayList<>();
+      private ArrayList<IntString> listDefaults = new ArrayList<>();
 
       private String extraType = "";
       private TInt extra = null;
 
-      private ArrayList<String> listPK = new ArrayList<String>();
-      private ArrayList<TString> listFK = new ArrayList<TString>();//COLUMN NAME AND TABLE.COLUMN REFERENCE
+      private ArrayList<String> listPK = new ArrayList<>();
+      private ArrayList<TString> listFK = new ArrayList<>();// COLUMN NAME AND TABLE.COLUMN REFERENCE
+      // +++++++++++++++++++++++++++++++++++++++++++
 
       public MSQLCreate(Connect conn) {
             super(conn);
       }
 
-      //+++++++++++++++++++++++++++++++++++++++++++
-      public void createTable(String table, String[] columnsNames, String[] columnsTypes, IUpdates iu) {
+      // +++++++++++++++++++++++++++++++++++++++++++
+      public boolean createTable(String table, String[] columnsNames, String[] columnsTypes, IUpdates iu) {
             try {
                   this.table = table;
-                  sb = new StringBuilder("CREATE TABLE " + table.replaceAll(" ", "_") + "(");
-                  //sql = "CREATE TABLE " + table.replaceAll(" ", "_") + "(";
+                  sb = new StringBuilder("CREATE TABLE " + table.replace(" ", "_") + "(");
+                  // sql = "CREATE TABLE " + table.replaceAll(" ", "_") + "(";
 
                   int length = columnsNames.length;
                   int removeTW = 0;
@@ -68,20 +69,59 @@ public class MSQLCreate extends SQLInit {
                   System.out.println(CC.CYAN + "\nSQL: " + sb.toString() + CC.RESET);
                   update(iu);
 
+                  return true;
             } catch (SQLException ex) {
                   iu.exception(ex, sb.toString());
+                  return false;
             }
 
       }
 
-      //+++++++++++++++++++++++++++++++++++++++++++
+      public boolean createTable(String table, String[] columnsNames, String[] columnsTypes) {
+            try {
+                  this.table = table;
+                  sb = new StringBuilder("CREATE TABLE " + table.replace(" ", "_") + "(");
+                  // sql = "CREATE TABLE " + table.replaceAll(" ", "_") + "(";
+
+                  int length = columnsNames.length;
+                  int removeTW = 0;
+                  int removeDF = 0;
+                  int removeNLL = 0;
+                  for (int a = 0; a < length; a++) {
+                        sb.append(columnsNames[a] + " " + columnsTypes[a]);
+
+                        typeWidths(removeTW, a);
+                        defaults(removeDF, a);
+                        nulls(removeNLL, a);
+
+                        extra(a);
+                        if (a != length - 1) {
+                              sb.append(", ");
+                        }
+                  }
+
+                  primaryKeys();
+                  foreignKeys();
+
+                  sb.append(")");
+                  System.out.println(CC.CYAN + "\nSQL: " + sb.toString() + CC.RESET);
+                  update(null);
+
+                  return true;
+            } catch (SQLException ex) {
+                  ex.printStackTrace();
+                  return false;
+            }
+      }
+
+      // +++++++++++++++++++++++++++++++++++++++++++
       private void typeWidths(int removeTW, int a) {
             if (!listWidth.isEmpty()) {
                   for (DInt x : listWidth) {
                         if (x != null) {
                               int index = x.index1;
                               int width = x.index2;
-                              if (index == (a + 1)) {
+                              if (index == (a + 1) && width > 0) {
                                     sb.append("(" + width + ")");
                                     break;
                               }
@@ -97,7 +137,7 @@ public class MSQLCreate extends SQLInit {
                         if (x != null) {
                               int index = x.index;
                               String string = x.string;
-                              try {//TEST FOR DEFAULT VALUE HAVING QUOTES
+                              try {// TEST FOR DEFAULT VALUE HAVING QUOTES
                                     Integer.parseInt(string);
                                     if (index == (a + 1)) {
                                           sb.append(" DEFAULT " + string);
@@ -108,7 +148,8 @@ public class MSQLCreate extends SQLInit {
                                           sb.append(" DEFAULT \"" + string + "\"");
                                           break;
                                     }
-                              };
+                              }
+                              ;
                         }
                   }
                   listDefaults.remove(removeNLL++);
@@ -164,7 +205,7 @@ public class MSQLCreate extends SQLInit {
             if (!listFK.isEmpty()) {
                   String tableR = listFK.get(0).string2;
                   sb.append(", CONSTRAINT fk_" + table + "__" + tableR + " FOREIGN KEY(");
-                  //TEST CONSTRAINTS
+                  // TEST CONSTRAINTS
                   for (int a = 0; a < listFK.size(); a++) {
                         sb.append(listFK.get(a).string1);
 
@@ -184,11 +225,12 @@ public class MSQLCreate extends SQLInit {
             }
       }
 
-      //+++++++++++++++++++++++++++++++++++++++++++
+      // +++++++++++++++++++++++++++++++++++++++++++
       public void addTypesWidth(DInt width) {
             listWidth.add(width);
       }
-      public void setAllTypesWidths(DInt[] widths) {
+
+      public void addAllTypesWidths(DInt[] widths) {
             listWidth.clear();
             for (DInt x : widths) {
                   listWidth.add(x);
@@ -198,7 +240,14 @@ public class MSQLCreate extends SQLInit {
       public void addAllowsNull(IntBoolean nullColumn) {
             listNulls.add(nullColumn);
       }
-      public void setAllAllowsNulls(IntBoolean[] nullsColumns) {
+
+      /**
+       * Needs to be fix.
+       * 
+       * @deprecated (Unnecesary IntBollean Array)
+       * @param nullsColumns boolean indicating if the column allows null values
+       */
+      public void addAllAllowsNulls(IntBoolean[] nullsColumns) {
             listNulls.clear();
             for (IntBoolean x : nullsColumns) {
                   listNulls.add(x);
@@ -208,7 +257,8 @@ public class MSQLCreate extends SQLInit {
       public void addDefault(IntString defaultt) {
             listDefaults.add(defaultt);
       }
-      public void setAllDefaults(IntString[] defaultt) {
+
+      public void addAllDefaults(IntString[] defaultt) {
             listDefaults.clear();
             for (IntString x : defaultt) {
                   listDefaults.add(x);
@@ -219,23 +269,28 @@ public class MSQLCreate extends SQLInit {
             extraType = "AUTO_INCREMENT";
             extra = new TInt(col, 0, 0);
       }
+
       public void setIdentity(int col, DInt idenValues) {
             extraType = "IDENTITY";
             extra = new TInt(col, idenValues.index1, idenValues.index2);
       }
 
-      public void addPrimaryKey(String PK) {
-            listPK.add(PK);
+      public void addPrimaryKey(String pk) {
+            if (pk != null) {
+                  listPK.add(pk);
+            }
       }
-      public void addAllPrimaryKeys(String[] PKS) {
+
+      public void addAllPrimaryKeys(String[] pks) {
             listPK.clear();
-            for (String x : PKS) {
+            for (String x : pks) {
                   listPK.add(x);
             }
       }
-      public void addAllPrimaryKeys(List<String> PKS) {
+
+      public void addAllPrimaryKeys(List<String> pks) {
             listPK.clear();
-            for (String x : PKS) {
+            for (String x : pks) {
                   listPK.add(x);
             }
       }
@@ -260,6 +315,7 @@ public class MSQLCreate extends SQLInit {
                   }
             }
       }
+
       public void addAllForeignKeys(TString[] FKS) {
             listFK.clear();
             for (TString x : FKS) {
@@ -272,7 +328,8 @@ public class MSQLCreate extends SQLInit {
                               String tableRC = listFK.get(a).string2;
                               if (!tableR.equals(tableRC)) {
                                     match = false;
-                                    throw new IllegalArgumentException("All Foreign keys must reference the same table");
+                                    throw new IllegalArgumentException(
+                                                "All Foreign keys must reference the same table");
                               } else {
                                     match = true;
                               }
@@ -283,6 +340,7 @@ public class MSQLCreate extends SQLInit {
                   }
             }
       }
+
       public void addAllForeignKeys(List<TString> FKS) {
             listFK.clear();
             for (TString x : FKS) {
@@ -295,7 +353,8 @@ public class MSQLCreate extends SQLInit {
                               String tableRC = listFK.get(a).string2;
                               if (!tableR.equals(tableRC)) {
                                     match = false;
-                                    throw new IllegalArgumentException("All Foreign keys must reference the same table");
+                                    throw new IllegalArgumentException(
+                                                "All Foreign keys must reference the same table");
                               } else {
                                     match = true;
                               }
@@ -306,5 +365,5 @@ public class MSQLCreate extends SQLInit {
                   }
             }
       }
-      //+++++++++++++++++++++++++++++++++++++++++++
+      // +++++++++++++++++++++++++++++++++++++++++++
 }

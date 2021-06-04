@@ -13,6 +13,11 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 
+/**
+ * Class that extends ToggleButton just for be able to deselect a button
+ * 
+ * @author C0FII
+ */
 public class ToggleGroupD<T extends ToggleButton> {
 
     private boolean countVisible = false;
