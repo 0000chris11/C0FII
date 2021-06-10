@@ -14,28 +14,34 @@ import java.util.ArrayList;
  */
 public class MString {
 
-      private static final String[] formatted = {"%fslash%", "bslash", "%lbracket%", "%gbracket%", "%question%", "%colon%",
-            "%asterisk%", "%dquotes%", "%pipe%"};
-      private static final String[] normal = {"/", "\\", "<", ">", "?", ":", "*", "\"", "|"};
+      private static final String[] formatted = { "%fslash%", "bslash", "%lbracket%", "%gbracket%", "%question%",
+                  "%colon%", "%asterisk%", "%dquotes%", "%pipe%" };
+      private static final String[] normal = { "/", "\\", "<", ">", "?", ":", "*", "\"", "|" };
 
       private MString() {
             throw new IllegalStateException("Private Constructor");
 
       }
 
-      //+++++++++++++++++++++++++++++++++++++++++
+      // +++++++++++++++++++++++++++++++++++++++++
       public static String getCustomFormattedString(String text) {
             if (text.contains("/")) {
                   text = text.replace("/", "%fslash%");
             }
+            if (text.contains("\\")) {
+                  text = text.replace("\\", "%bslash%");
+            }
             if (text.contains("<")) {
-                  text = text.replace("<", "%Bracket%");
+                  text = text.replace("<", "%lbracket%");
+            }
+            if (text.contains(">")) {
+                  text = text.replace(">", "%gbracket%");
             }
             if (text.contains("?")) {
-                  text = text.replace("?", "%Question%");
+                  text = text.replace("?", "%question%");
             }
-            if (text.contains(": ")) {
-                  text = text.replace(": ", "%2d%");
+            if (text.contains(":")) {
+                  text = text.replace(":", "%colon%");
 
             }
             return text;
@@ -58,8 +64,8 @@ public class MString {
                         array[a] = text.substring(0, text.indexOf(";"));
                         text = text.replace(array[a] + "; ", "");
 
-                        //System.out.println("array[a]: " + array[a]);
-                        //System.out.println("Text: " + text);
+                        // System.out.println("array[a]: " + array[a]);
+                        // System.out.println("Text: " + text);
                         happens = true;
                   } else {
                         if (happens) {
@@ -148,8 +154,8 @@ public class MString {
                   return null;
             }
       }
-      
-      public static String getCustomClearTableFormat(String table){
+
+      public static String getCustomClearTableFormat(String table) {
             return table.toLowerCase().trim().replaceAll(" ", "_");
       }
 }

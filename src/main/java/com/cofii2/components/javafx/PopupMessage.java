@@ -8,18 +8,22 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.stage.Popup;
 
-public class PopupMessage extends Popup{
+public class PopupMessage extends Popup {
 
     private Node parentNode;
     private Label lbMessage = new Label("No message");
-    //---------------------------------------------------
-    public void show(String message){
+
+    // ---------------------------------------------------
+    public void show(String message) {
         lbMessage.setText(message);
         Bounds sb = parentNode.localToScreen(parentNode.getBoundsInLocal());
-        show(parentNode, sb.getMaxX(), sb.getMinY());
+        if (sb != null) {
+            show(parentNode, sb.getMaxX(), sb.getMinY());
+        }
     }
-    //---------------------------------------------------
-    private void init(){
+
+    // ---------------------------------------------------
+    private void init() {
         Button btnx = new Button("x");
         HBox hbox = new HBox(btnx, lbMessage);
         hbox.setSpacing(2);
@@ -31,26 +35,32 @@ public class PopupMessage extends Popup{
         });
         getContent().add(hbox);
     }
-    //---------------------------------------------------
-    public PopupMessage(Node parentNode){
+
+    // ---------------------------------------------------
+    public PopupMessage(Node parentNode) {
         this.parentNode = parentNode;
         init();
     }
-    public PopupMessage(Node parentNode, String message){
+
+    public PopupMessage(Node parentNode, String message) {
         this.parentNode = parentNode;
         lbMessage.setText(message);
         init();
     }
-    //---------------------------------------------------
+
+    // ---------------------------------------------------
     public Node getParentNode() {
         return parentNode;
     }
+
     public void setParentNode(Node parentNode) {
         this.parentNode = parentNode;
     }
+
     public Label getLbMessage() {
         return lbMessage;
     }
+
     public void setLbMessage(Label lbMessage) {
         this.lbMessage = lbMessage;
     }

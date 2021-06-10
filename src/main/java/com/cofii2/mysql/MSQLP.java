@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -289,10 +290,12 @@ public class MSQLP {
             } else {
                 sql = "SELECT * FROM " + table + " WHERE " + columnWhere + " = '" + valueWhere + "'";
             }
+            System.out.println("selectRow: " + sql);
 
-            queryAction(null, SQL);
+            Statement st = con.createStatement();
+            // queryAction(null, SQL);
 
-            return rs;
+            return st.executeQuery(sql);
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
@@ -308,10 +311,10 @@ public class MSQLP {
                 sql = "SELECT " + columnWhere + " FROM " + table + " WHERE " + columnWhere + " = '" + valueWhere + "'";
             }
             List<Object> returnValue = new ArrayList<>();
-            while(rs.next()){
+            while (rs.next()) {
                 if (valueWhere instanceof Integer) {
                     returnValue.add(rs.getInt(1));
-                }else if(valueWhere instanceof String){
+                } else if (valueWhere instanceof String) {
                     returnValue.add(rs.getString(1));
                 }
             }
@@ -391,18 +394,9 @@ public class MSQLP {
     public void selectKeys(String[] databases, IActions ac) {
         try {
             sb = new StringBuilder(
-                    "SELECT t.table_schema, t.table_name, t.constraint_type, k.ORDINAL_POSITION, k.column_name, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.table_constraints t JOIN information_schema.key_column_usage k USING(constraint_name,table_schema,table_name)"
+                    "SELECT t.table_schema, t.table_name, t.constraint_type, k.ORDINAL_POSITION, k.column_name, k.referenced_table_schema, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.table_constraints t JOIN information_schema.key_column_usage k USING(constraint_name,table_schema,table_name)"
                             + "WHERE (t.constraint_type='PRIMARY KEY' OR t.constraint_type= 'FOREIGN KEY') AND ");
 
-            /*
-             * SELECT t.table_name, t.constraint_type, k.ORDINAL_POSITION, k.column_name,
-             * k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM
-             * information_schema.table_constraints t JOIN
-             * information_schema.key_column_usage k
-             * USING(constraint_name,table_schema,table_name) WHERE
-             * (t.constraint_type='PRIMARY KEY' OR t.constraint_type= 'FOREIGN KEY') AND
-             * t.table_schema =
-             */
 
             whereSet("t.table_schema", " OR ", databases, false);
             queryAction(ac, NONE);
@@ -439,7 +433,6 @@ public class MSQLP {
                 }
             }
             sb.append(")");
-            System.out.println("SQL INSERT: " + sb.toString());
             ps = con.prepareStatement(sb.toString());
             for (int a = 0; a < values.length; a++) {
                 if (values[a] != null) {
@@ -504,7 +497,6 @@ public class MSQLP {
 
             sb = new StringBuilder("DELETE FROM " + table + " WHERE ");
 
-            System.out.println("TEST AT DELETEROW SQL: " + sb.toString());
             ps = con.prepareStatement(sb.toString());
             for (int a = 0; a < length; a++) {
                 if (valuesWhere[a] != null) {
