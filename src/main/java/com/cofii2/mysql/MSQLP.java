@@ -8,10 +8,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.cofii2.myInterfaces.IActions;
 import com.cofii2.myInterfaces.IDataTooLong;
+import com.cofii2.myInterfaces.ISQL;
 import com.cofii2.myInterfaces.IUpdates;
 import com.cofii2.mysql.interfaces.IConnectionException;
 
@@ -27,6 +29,7 @@ public class MSQLP {
     private ResultSet rs;
 
     private IUpdates iu;
+    private ISQL isql;
     private IDataTooLong idata;
     // QUERY ACTION OPTIONS-----------------------------------------
     private static final int SQL = 0;
@@ -41,6 +44,12 @@ public class MSQLP {
     public static final int MOST_USE_ORDER = 3;
 
     private int order = DEFAULT_ORDER;
+    // COLUMN---------------------------------------------------
+    private Object addColumndefaultValue;
+    private boolean nullValue = true;
+    private boolean extraValue = false;
+
+    private String constraint = null;
 
     // -------------------------------------------------------
     public MSQLP(String url) {
@@ -104,10 +113,16 @@ public class MSQLP {
         ac.afterQuery(sql, rsValue);
     }
 
+    public void setSQLException(ISQL isql) {
+        this.isql = isql;
+    }
+
     private boolean update(IUpdates iu, String queryType) throws SQLException {
         try {
             if (queryType.equals("SQL")) {
                 ps = con.prepareStatement(sql);
+            } else if (queryType.equals("SB")) {
+                ps = con.prepareStatement(sb.toString());
             }
 
             int i = ps.executeUpdate();
@@ -120,6 +135,10 @@ public class MSQLP {
             }
             sb = null;
             iu = null;
+            //isql = null;
+            addColumndefaultValue = null;
+            nullValue = true;
+            extraValue = false;
             return true;
         } catch (SQLException e) {
             if (e.getMessage().contains("Data too long for column")) {
@@ -129,7 +148,11 @@ public class MSQLP {
                     e.printStackTrace();
                 }
             } else {
-                e.printStackTrace();
+                if (isql != null) {
+                    isql.exception(e, null);
+                } else {
+                    e.printStackTrace();
+                }
             }
             return false;
         }
@@ -290,7 +313,6 @@ public class MSQLP {
             } else {
                 sql = "SELECT * FROM " + table + " WHERE " + columnWhere + " = '" + valueWhere + "'";
             }
-            System.out.println("selectRow: " + sql);
 
             Statement st = con.createStatement();
             // queryAction(null, SQL);
@@ -348,7 +370,7 @@ public class MSQLP {
                 sql = "SELECT " + column + " FROM " + table + " GROUP BY(" + column + ") ORDER BY COUNT(" + column
                         + ") DESC";
             }
-
+            System.out.println(sql);
             queryAction(ac, SQL);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -394,11 +416,11 @@ public class MSQLP {
     public void selectKeys(String[] databases, IActions ac) {
         try {
             sb = new StringBuilder(
-                    "SELECT t.table_schema, t.table_name, t.constraint_type, k.ORDINAL_POSITION, k.column_name, k.referenced_table_schema, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.table_constraints t JOIN information_schema.key_column_usage k USING(constraint_name,table_schema,table_name)"
+                    "SELECT t.table_schema, t.table_name, t.constraint_name, k.ORDINAL_POSITION, k.column_name, k.referenced_table_schema, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.table_constraints t JOIN information_schema.key_column_usage k USING(constraint_name,table_schema,table_name)"
                             + "WHERE (t.constraint_type='PRIMARY KEY' OR t.constraint_type= 'FOREIGN KEY') AND ");
 
-
             whereSet("t.table_schema", " OR ", databases, false);
+
             queryAction(ac, NONE);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -448,9 +470,21 @@ public class MSQLP {
                 }
             }
 
-            return update(iu, "SB");
+            ps.executeUpdate();
+            return true;
         } catch (SQLException e) {
 
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // TABLE=================================================
+    public boolean renameTable(String oldTable, String toTable) {
+        try {
+            sql = "RENAME TABLE " + oldTable + " TO " + toTable;
+            return update(iu, "SQL");
+        } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
@@ -466,6 +500,177 @@ public class MSQLP {
         }
     }
 
+    // COLUMN=============================================
+    public void setAddColumnDefaultValue(Object addColumndefaultValue) {
+        this.addColumndefaultValue = addColumndefaultValue;
+    }
+
+    public void setNullValue(boolean nullValue) {
+        this.nullValue = nullValue;
+    }
+
+    public void setExtraValue(boolean addColumnExtra) {
+        this.extraValue = addColumnExtra;
+    }
+
+    private void defaultAddColumn(String table, String newColumn, String type) {
+        sb = new StringBuilder("ALTER TABLE ").append(table).append(" ");
+        sb.append("ADD COLUMN").append(" ").append(newColumn).append(" ");
+        sb.append(type);// PASS ALSO LENGTH
+        sb.append(nullValue ? " " : " NOT NULL");
+        if (addColumndefaultValue != null) {
+            sb.append(" DEFAULT ");
+            sb.append(addColumndefaultValue instanceof String ? "'" + addColumndefaultValue + "'"
+                    : addColumndefaultValue);
+        }
+        sb.append(extraValue ? " AUTO_INCREMENT" : "");
+    }
+
+    public boolean addColumn(String table, String newColumn, String type) {
+        try {
+            defaultAddColumn(table, newColumn, type);
+            return update(iu, "SB");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean addColumn(String table, String newColumn, String type, String afterColumn) {
+        try {
+            // ALTER TABLE table_name ADD COLUMN col_name type AFTER col_name
+            defaultAddColumn(table, newColumn, type);
+            sb.append(" AFTER").append(" ").append(afterColumn);
+
+            return update(iu, "SB");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // ---------------------------------------------
+    public boolean renameColumn(String table, String oldColumn, String newColumn) {
+        try {
+            // ALTER TABLE table_name RENAME COLUMN orig_col_name TO new_col_name;
+            sql = "ALTER TABLE " + table + " RENAME COLUMN " + oldColumn + " TO " + newColumn;
+
+            return update(iu, "SQL");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+    }
+
+    public boolean changeType(String table, String column, String type) {
+        try {
+            // ALTER TABLE table_name MODIFY COLUMN col_name col_type
+            sb = new StringBuilder("ALTER TABLE ").append(table).append(" MODIFY COLUMN ").append(column).append(" ")
+                    .append(type);
+            sb.append(nullValue ? "" : " NOT NULL");
+            sb.append(extraValue ? " AUTO_INCREMENT" : "");
+
+            return update(iu, "SB");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean setDefaultValue(String table, String column, Object defaultValue) {
+        try {
+            // ALTER TABLE table_name ALTER col_name SET DEFAULT col_value;
+            sql = "ALTER TABLE " + table + " ALTER " + column + " "
+                    + (defaultValue != null ? "SET DEFAULT " : "DROP DEFAULT");
+            if (defaultValue != null) {
+                sql += (defaultValue instanceof String ? "'" + defaultValue.toString() + "'" : defaultValue.toString());
+            }
+
+            return update(iu, "SQL");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // PK===================================================
+    public boolean dropPrimaryKey(String table) {
+        try {
+            // ALTER TABLE table_name DROP PRIMARY KEY;
+            sql = "ALTER TABLE " + table + " DROP PRIMARY KEY";
+            return update(iu, "SQL");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean addPrimaryKey(String table, String... columns) {
+        try {
+            // ALTER TABLE table_name ADD PRIMARY KEY (col_name);
+            sb = new StringBuilder("ALTER TABLE ").append(table).append(" ADD PRIMARY KEY (");
+            List<String> cols = Arrays.asList(columns);
+            cols.forEach(col -> sb.append(col).append(","));
+            sb.deleteCharAt(sb.length() - 1);// TEST
+            sb.append(")");
+            System.out.println("TEST: " + sb.toString());
+            return update(iu, "SB");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // FK====================================================
+    public boolean dropForeignKey(String table, String constraint) {
+        try {
+            // ALTER TABLE table_name DROP FOREIGN KEY fk_name;
+            sb = new StringBuilder("ALTER TABLE ").append(table).append(" DROP FOREIGN KEY ").append(constraint);
+            return update(iu, "SB");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * for adding a foreign key
+     * 
+     * @param constraint this key constraint name
+     */
+    public void setConstraintName(String constraint) {
+        this.constraint = constraint;
+    }
+
+    public boolean addForeignKey(String table, String[] columns, String tableReference, String[] columnsReference) {
+        // ALTER TABLE table_name ADD FOREIGN KEY(column_name) REFERENCES table_name
+        // ALTER TABLE table_name ADD CONSTRAINT fk_name FOREIGN KEY(column_name)
+        // REFERENCES table_name
+        if (columns.length == columnsReference.length) {
+            try {
+                sb = new StringBuilder("ALTER TABLE ").append(table).append(" ADD ");
+                sb.append(constraint != null ? "CONSTRAINT " + constraint : "");
+                sb.append("FOREIGN KEY(");
+                Arrays.asList(columns).forEach(c -> sb.append(c).append(","));
+                sb.deleteCharAt(sb.length() - 1).append(")");
+
+                sb.append(" REFERENCES ").append(tableReference).append("(");
+                Arrays.asList(columnsReference).forEach(cr -> sb.append(cr).append(","));
+                sb.deleteCharAt(sb.length() - 1).append(")");
+
+                System.out.println(sb.toString());
+                return update(iu, "SB");
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    // ROW==================================================
     /**
      * Delete a row from a table
      * 
@@ -520,6 +725,36 @@ public class MSQLP {
         }
     }
 
+    public boolean updateRow(String table, String columnWhere, Object valueWhere, String columnSet, Object valueSet) {
+        try {
+            sb = new StringBuilder("UPDATE " + table + " SET " + columnSet + " = ");
+            if (valueSet instanceof Integer) {
+                sb.append(valueSet);
+            } else {
+                sb.append("'" + valueSet + "'");
+            }
+            sb.append(" WHERE " + columnWhere + " = ");
+            if (valueWhere instanceof Integer) {
+                sb.append(valueWhere);
+            } else {
+                sb.append("'" + valueWhere + "'");
+            }
+
+            return update(iu, "SB");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Update a singel cell where a row match all valuesWhere values
+     * 
+     * @param table       table in wich the update will happen
+     * @param valuesWhere an entire row to match the where values
+     * @param column      column to set the new value
+     * @param newValue    the set for the cell to be updated
+     */
     public boolean updateRow(String table, Object[] valuesWhere, String column, Object newValue) {
         try {
             sb = new StringBuilder("UPDATE " + table + " SET ");
@@ -603,7 +838,9 @@ public class MSQLP {
                     }
                 }
 
-                return update(iu, "SB");
+                // return update(iu, "SB");
+                ps.executeUpdate();
+                return true;
             } catch (SQLException e) {
                 e.printStackTrace();
                 return false;

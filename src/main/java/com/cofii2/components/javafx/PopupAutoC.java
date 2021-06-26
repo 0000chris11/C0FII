@@ -1,5 +1,7 @@
 package com.cofii2.components.javafx;
 
+import javafx.event.EventDispatcher;
+import javafx.event.EventType;
 import javafx.geometry.Bounds;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -53,6 +55,22 @@ public class PopupAutoC extends Popup {
         return text;
     }
 
+    private void setAfterTag(String newValue){
+        String text = tfParent.getText();
+        if (text.contains("; ")) {
+            // String text = getAfterTag(tf.getText());
+            String[] split = text.split("; ");
+            text = "";
+            for (int a = 0; a < split.length - 1; a++) {
+                text += split[a] + "; ";
+            }
+            text += newValue;
+            tfParent.setText(text);
+        } else {
+            tfParent.setText(newValue);
+        }
+    }
+
     private void listScrollControl(KeyEvent e) {
         if (skin == null) {
             skin = new ListViewSkin<>(lv);
@@ -80,13 +98,13 @@ public class PopupAutoC extends Popup {
 
     private void listScrollControlSimpleWay(KeyEvent e) {
         System.out.println("listScrollControlSimpleWay");
-        int selected = lv.getSelectionModel().getSelectedIndex();
-        if (e.getCode() == KeyCode.DOWN) {
-            // lv.getSelectionModel().select(++selected);
-        } else if (e.getCode() == KeyCode.UP) {
-            // lv.getSelectionModel().select(--selected);
-
-        }
+        //int selected = lv.getSelectionModel().getSelectedIndex();
+        
+        if (e.getCode() == KeyCode.DOWN || e.getCode() == KeyCode.UP) {
+            System.out.println("getCaretPosition: " + tfParent.getCaretPosition());
+            tfParent.setText(lv.getSelectionModel().getSelectedItem());
+            tfParent.positionCaret(tfParent.getText() != null ? tfParent.getText().length() : 0);
+        } 
     }
 
     private void search() {
@@ -97,10 +115,11 @@ public class PopupAutoC extends Popup {
         if (!lv.getItems().get(0).equals(noItemsOption)) {
             // System.out.println("\nSEARCH FUNCTION STARTS");
 
-            String text = tfParent.getText().toLowerCase();
+            String text = tfParent.getText();
             text = getAfterTag(text);
 
             if (!text.isEmpty()) {
+                text = text.toLowerCase();
                 for (int a = 0; a < lv.getItems().size(); a++) {// REMOVE ITEMS
                     String item = lv.getItems().get(a);
                     String itemFiltered = item.toLowerCase();
@@ -147,20 +166,8 @@ public class PopupAutoC extends Popup {
 
     private void lvSelectionListener(String newValue) {
         if (tfParent != null) {
-            String text = tfParent.getText();
             if (!tfParent.isFocused()) {
-                if (text.contains("; ")) {
-                    // String text = getAfterTag(tf.getText());
-                    String[] split = text.split("; ");
-                    text = "";
-                    for (int a = 0; a < split.length - 1; a++) {
-                        text += split[a] + "; ";
-                    }
-                    text += newValue;
-                    tfParent.setText(text);
-                } else {
-                    tfParent.setText(newValue);
-                }
+                setAfterTag(newValue);
             }
         }
     }
@@ -191,7 +198,7 @@ public class PopupAutoC extends Popup {
                 }
             });
             tfParent.getScene().getWindow().yProperty().addListener((obs, oldV, newV) -> {
-                if (tfParent != null) {
+                if (tfParent != null && tfParent.getScene().getWindow() != null) {
                     Bounds bounds = tfParent.localToScene(tfParent.getBoundsInLocal());
                     double y = newV.doubleValue() /* + bounds.getMinX() */;
                     double titleHeight = tfParent.getScene().getWindow().getHeight() - tfParent.getScene().getHeight();
@@ -204,6 +211,29 @@ public class PopupAutoC extends Popup {
     }
 
     public void init() {
+        /*
+        final EventDispatcher originalED = getEventDispatcher();
+        setEventDispatcher((event, tail) -> {
+            if (event.getEventType() == KeyEvent.KEY_RELEASED
+                && ((KeyEvent) event).getCode() == KeyCode.ENTER) {
+                    tfParent.positionCaret(tfParent.getText().length());
+              return null; // returning null indicates the event was consumed
+            }
+            return originalED.dispatchEvent(event, tail);
+          });
+          */
+          addEventHandler(KeyEvent.KEY_RELEASED, e -> {
+              if(e.getCode() == KeyCode.END){
+                tfParent.positionCaret(tfParent.getText().length());
+              }else if(e.getCode() == KeyCode.BEGIN){//DOESN'T WORK
+                tfParent.positionCaret(0);
+              }else if(e.getCode() == KeyCode.LEFT){
+                tfParent.positionCaret(tfParent.getCaretPosition() - 1);
+              }else if(e.getCode() == KeyCode.RIGHT){
+                tfParent.positionCaret(tfParent.getCaretPosition() + 1);
+              }
+          });
+
         getContent().add(lv);
         if (tfParent != null) {
             tfParentInit();

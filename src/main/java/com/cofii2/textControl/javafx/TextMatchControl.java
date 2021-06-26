@@ -57,9 +57,13 @@ public class TextMatchControl {
 
     // -----------------------------------------------
     private void matchListFunction(String text) {
+        System.out.println("text: " + text);
         arraysList.forEach((a, m) -> {
             if (m == MATCH_ANY) {
-                match = Arrays.asList(a).stream().anyMatch(element -> text.equals(element));
+                match = Arrays.asList(a).stream().anyMatch(element -> {
+                    System.out.println("\t" + element);
+                    return text.equalsIgnoreCase(element);
+                });
             }
         });
     }

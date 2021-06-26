@@ -17,7 +17,7 @@ public class PopupMessage extends Popup {
     public void show(String message) {
         lbMessage.setText(message);
         Bounds sb = parentNode.localToScreen(parentNode.getBoundsInLocal());
-        if (sb != null) {
+        if (sb != null && parentNode.isVisible()) {
             show(parentNode, sb.getMaxX(), sb.getMinY());
         }
     }
@@ -29,6 +29,7 @@ public class PopupMessage extends Popup {
         hbox.setSpacing(2);
         btnx.setFont(Font.font(6));
 
+        btnx.setOnAction(e -> hide());
         hbox.setOnMouseDragged(e -> {
             PopupMessage.this.setX(e.getScreenX());
             PopupMessage.this.setY(e.getScreenY());

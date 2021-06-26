@@ -14,3 +14,4 @@ com.cofii2.mysql.interfaces
 com.cofii2.mysql.store
 com.cofii2.stores
 com.cofii2.textControl
+com.cofii2.textControl.javafx
