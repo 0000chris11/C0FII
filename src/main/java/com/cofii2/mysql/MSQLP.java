@@ -87,6 +87,7 @@ public class MSQLP {
             ps = con.prepareStatement(sb.toString());
         }
 
+        System.out.println("ps: " + ps);
         rs = ps.executeQuery();
         if (ac != null) {
             ac.beforeQuery();
@@ -150,7 +151,6 @@ public class MSQLP {
             } else {
                 if (isql != null) {
                     isql.exception(e, null);
-                } else {
                     e.printStackTrace();
                 }
             }
@@ -259,7 +259,7 @@ public class MSQLP {
                     sb.append(concat);
                 }
             }
-
+            sb.append(")");
             ps = con.prepareStatement(sb.toString());
             for (int a = 0; a < columns.length; a++) {
                 if (columns[a] != null) {
@@ -416,10 +416,11 @@ public class MSQLP {
     public void selectKeys(String[] databases, IActions ac) {
         try {
             sb = new StringBuilder(
-                    "SELECT t.table_schema, t.table_name, t.constraint_name, k.ORDINAL_POSITION, k.column_name, k.referenced_table_schema, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.table_constraints t JOIN information_schema.key_column_usage k USING(constraint_name,table_schema,table_name)"
-                            + "WHERE (t.constraint_type='PRIMARY KEY' OR t.constraint_type= 'FOREIGN KEY') AND ");
+                    "SELECT t.table_schema, t.table_name, t.constraint_name, k.ORDINAL_POSITION, k.column_name, k.referenced_table_schema, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.table_constraints t JOIN information_schema.key_column_usage k USING(constraint_name, table_schema, table_name)"
+                            + " WHERE (t.constraint_type = 'PRIMARY KEY' OR t.constraint_type = 'FOREIGN KEY') AND (");
 
             whereSet("t.table_schema", " OR ", databases, false);
+            sb.append(")");
 
             queryAction(ac, NONE);
         } catch (SQLException e) {
@@ -651,7 +652,7 @@ public class MSQLP {
             try {
                 sb = new StringBuilder("ALTER TABLE ").append(table).append(" ADD ");
                 sb.append(constraint != null ? "CONSTRAINT " + constraint : "");
-                sb.append("FOREIGN KEY(");
+                sb.append(" FOREIGN KEY(");
                 Arrays.asList(columns).forEach(c -> sb.append(c).append(","));
                 sb.deleteCharAt(sb.length() - 1).append(")");
 
