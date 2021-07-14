@@ -44,12 +44,34 @@ public class Custom {
         return imageC.toString();
     }
 
-    public static String getImageCPath(int length, TextField tf, ToggleButton... btns) {
+    public static String getOldImageC(int length, String[] btns) {
+        StringBuilder imageC = new StringBuilder("NONE");
+        for (int a = 0; a < length; a++) {
+            if (btns[a].equals("Yes")) {
+                imageC.delete(0, imageC.length());
+                imageC.append("C" + (a + 1));
+            }
+        }
+        return imageC.toString();
+    }
+
+    public static String getImageCPath(int length, String text , ToggleButton... btns) {
         StringBuilder imageCPath = new StringBuilder("NONE");
         for (int a = 0; a < length; a++) {
             if (btns[a].isSelected()) {
                 imageCPath.delete(0, imageCPath.length());
-                imageCPath.append(tf.getText());
+                imageCPath.append(text);
+            }
+        }
+        return imageCPath.toString();
+    }
+
+    public static String getImageCPath(int length, String text , String[] btns) {
+        StringBuilder imageCPath = new StringBuilder("NONE");
+        for (int a = 0; a < length; a++) {
+            if (btns[a].equals("Yes")) {
+                imageCPath.delete(0, imageCPath.length());
+                imageCPath.append(text);
             }
         }
         return imageCPath.toString();
@@ -69,17 +91,21 @@ public class Custom {
         return dists;
     }
 
-    public static String getDist(String[] dist) {
+    public static String getOldDist(String[] dist) {
         StringBuilder returnValue;
+        int[] count = {0};
         int[] indexs = { 0 };
+        List<Integer> indexsList = new ArrayList<>(dist.length);
         Arrays.asList(dist).forEach(s -> {
             if (s.equals("Yes")) {
-                indexs[0]++;
+                indexsList.add(indexs[0]);
+                count[0]++;
             }
+            indexs[0]++;
         });
         if (indexs[0] > 0) {
-            returnValue = new StringBuilder("X").append(indexs[0]).append(":");
-            Arrays.asList(indexs).forEach(i -> returnValue.append(" " + i + ","));
+            returnValue = new StringBuilder("X").append(count[0]).append(":");
+            indexsList.forEach(i -> returnValue.append(" " + (i + 1) + ","));
             returnValue.deleteCharAt(returnValue.length() - 1);//TEST
         } else {
             returnValue = new StringBuilder("NONE");

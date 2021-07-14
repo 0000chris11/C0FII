@@ -1,4 +1,4 @@
-package com.cofii2.components.javafx;
+package com.cofii2.components.javafx.popup;
 
 import javafx.geometry.Bounds;
 import javafx.scene.Node;

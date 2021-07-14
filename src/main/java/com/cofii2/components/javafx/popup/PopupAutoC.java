@@ -1,7 +1,5 @@
-package com.cofii2.components.javafx;
+package com.cofii2.components.javafx.popup;
 
-import javafx.event.EventDispatcher;
-import javafx.event.EventType;
 import javafx.geometry.Bounds;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -35,17 +33,7 @@ public class PopupAutoC extends Popup {
     private VirtualFlow<?> vf;
     private String[] lvOriginalItems;
 
-    // LISTENERS FUNC--------------------------------------------
-    private void showPopup() {
-        Bounds sb = tfParent.localToScreen(tfParent.getBoundsInLocal());
-        if (sideOption == BOTTOM_SIDE) {
-            show(tfParent, sb.getMinX(), sb.getMaxY());
-        } else if (sideOption == RIGHT_SIDE) {
-            show(tfParent, sb.getMaxX(), sb.getMinY());
-        }
-
-    }
-
+    // QOL-------------------------------------
     private String getAfterTag(String text) {
         if (!text.isEmpty() && text.contains("; ")) {
             text = text.substring(text.lastIndexOf("; ") + 2, text.length());
@@ -55,20 +43,31 @@ public class PopupAutoC extends Popup {
         return text;
     }
 
-    private void setAfterTag(String newValue){
-        String text = tfParent.getText();
-        if (text.contains("; ")) {
+    private void setAfterTag(String newValue) {
+        StringBuilder text = new StringBuilder(tfParent.getText());
+        if (text.toString().contains("; ")) {
             // String text = getAfterTag(tf.getText());
-            String[] split = text.split("; ");
-            text = "";
+            String[] split = text.toString().split("; ");
+            text = new StringBuilder();
             for (int a = 0; a < split.length - 1; a++) {
-                text += split[a] + "; ";
+                text.append(split[a]).append("; ");
             }
-            text += newValue;
-            tfParent.setText(text);
+            text.append(newValue);
+            tfParent.setText(text.toString());
         } else {
             tfParent.setText(newValue);
         }
+    }
+
+    // LISTENERS FUNC--------------------------------------------
+    private void showPopup() {
+        Bounds sb = tfParent.localToScreen(tfParent.getBoundsInLocal());
+        if (sideOption == BOTTOM_SIDE) {
+            show(tfParent, sb.getMinX(), sb.getMaxY());
+        } else if (sideOption == RIGHT_SIDE) {
+            show(tfParent, sb.getMaxX(), sb.getMinY());
+        }
+
     }
 
     private void listScrollControl(KeyEvent e) {
@@ -97,64 +96,77 @@ public class PopupAutoC extends Popup {
     }
 
     private void listScrollControlSimpleWay(KeyEvent e) {
-        System.out.println("listScrollControlSimpleWay");
-        //int selected = lv.getSelectionModel().getSelectedIndex();
-        
+        int selected = lv.getSelectionModel().getSelectedIndex();
         if (e.getCode() == KeyCode.DOWN || e.getCode() == KeyCode.UP) {
-            System.out.println("getCaretPosition: " + tfParent.getCaretPosition());
+            if(lv.getSelectionModel().isEmpty()){
+                showPopup();
+            }
+
             tfParent.setText(lv.getSelectionModel().getSelectedItem());
             tfParent.positionCaret(tfParent.getText() != null ? tfParent.getText().length() : 0);
-        } 
+            if (e.getCode() == KeyCode.DOWN) {
+                lv.getSelectionModel().select(++selected);
+            } else if (e.getCode() == KeyCode.UP) {
+                lv.getSelectionModel().select(--selected);
+            }
+
+            tfParent.setText(lv.getSelectionModel().getSelectedItem());
+        }
     }
 
-    private void search() {
+    private void search(KeyEvent e) {
         // lv.setVisible(true);
         showPopup();
-        lv.getItems().clear();
-        lv.getItems().addAll(lvOriginalItems);
-        if (!lv.getItems().get(0).equals(noItemsOption)) {
-            // System.out.println("\nSEARCH FUNCTION STARTS");
+        if (e.getCode() != KeyCode.DOWN) {
+            lv.getItems().clear();
+            lv.getItems().addAll(lvOriginalItems);
+            if (!lv.getItems().get(0).equals(noItemsOption)) {
+                // System.out.println("\nSEARCH FUNCTION STARTS");
 
-            String text = tfParent.getText();
-            text = getAfterTag(text);
+                String text = tfParent.getText();
+                text = getAfterTag(text);
 
-            if (!text.isEmpty()) {
-                text = text.toLowerCase();
-                for (int a = 0; a < lv.getItems().size(); a++) {// REMOVE ITEMS
-                    String item = lv.getItems().get(a);
-                    String itemFiltered = item.toLowerCase();
-                    if (searchOption == STARTS_WITH) {
-                        if (!itemFiltered.startsWith(text)) {
-                            lv.getItems().remove(item);
-                            a--;
-                        }
-                    } else if (searchOption == CONTAINTS) {
-                        if (!itemFiltered.contains(text)) {
+                if (!tfParent.getText().isEmpty()) {
+                    text = text.toLowerCase();
+                    for (int a = 0; a < lv.getItems().size(); a++) {// REMOVE ITEMS
+                        String item = lv.getItems().get(a);
+                        String itemFiltered = item.toLowerCase();
+                        if (searchOption == STARTS_WITH) {
+                            if (!itemFiltered.startsWith(text)) {
+                                lv.getItems().remove(item);
+                                a--;
+                            }
+                        } else if (searchOption == CONTAINTS && !itemFiltered.contains(text)) {
                             lv.getItems().remove(item);
                             a--;
                         }
                     }
-                }
-                if (lv.getItems().isEmpty()) {
+                    if (lv.getItems().isEmpty()) {
+                        hide();
+                    }
+                } else {
                     hide();
                 }
-            } else {
-                hide();
-            }
 
+            }
         }
     }
 
     private void tfParentKeyReleased(KeyEvent e) {
-        if (tfParent != null) {
-            if (lvOriginalItems != null) {
-                // listScrollControl(e);
-                listScrollControlSimpleWay(e);
-                if ((e.getCode().isLetterKey() || e.getCode() == KeyCode.BACK_SPACE || e.getCode() == KeyCode.SPACE)
-                        && lvOriginalItems.length > 0) {
-                    search();
-                }
+        if (tfParent != null && lvOriginalItems != null) {
+            // listScrollControl(e);
+            listScrollControlSimpleWay(e);
+
+            if ((e.getCode().isLetterKey() || e.getCode() == KeyCode.BACK_SPACE || e.getCode() == KeyCode.SPACE
+                    /*|| e.getCode() == KeyCode.DOWN*/) && lvOriginalItems.length > 0) {
+                /*
+                 * if (e.getCode() == KeyCode.DOWN && lv.getSelectionModel().isEmpty()) {
+                 * lv.getSelectionModel().select(0);
+                 * tfParent.setText(lv.getSelectionModel().getSelectedItem()); }
+                 */
+                search(e);
             }
+
         }
     }
 
@@ -164,11 +176,12 @@ public class PopupAutoC extends Popup {
         }
     }
 
-    private void lvSelectionListener(String newValue) {
-        if (tfParent != null) {
-            if (!tfParent.isFocused()) {
-                setAfterTag(newValue);
-            }
+    private void lvSelectionListener(String oldValue, String newValue) {
+        System.out.println("\noldValue: " + oldValue);
+        System.out.println("newValue: " + newValue);
+        if (tfParent != null && !tfParent.isFocused()) {
+            setAfterTag(newValue);
+
         }
     }
 
@@ -182,12 +195,7 @@ public class PopupAutoC extends Popup {
     private void tfParentInit() {
         tfParent.addEventHandler(KeyEvent.KEY_RELEASED, this::tfParentKeyReleased);
         tfParent.focusedProperty().addListener((obs, oldV, newV) -> tfParentFocusedProperty(newV));
-        /*
-         * tfParent.localToSceneTransformProperty().addListener((obs, oldV, newV) -> {
-         * Bounds bounds = tfParent.localToScreen(tfParent.getBoundsInLocal());
-         * System.out.println("\nX: " + bounds.getMinX()); System.out.println("Y: " +
-         * bounds.getMinY()); });
-         */
+
         if (tfParent.getScene() != null) {
             tfParent.getScene().getWindow().xProperty().addListener((obs, oldV, newV) -> {
                 if (tfParent != null) {
@@ -206,40 +214,39 @@ public class PopupAutoC extends Popup {
                     setY(y + bounds.getMaxY() + titleHeight);
                 }
             });
+
             lv.setPrefWidth(tfParent.getPrefHeight());
         }
     }
 
     public void init() {
         /*
-        final EventDispatcher originalED = getEventDispatcher();
-        setEventDispatcher((event, tail) -> {
-            if (event.getEventType() == KeyEvent.KEY_RELEASED
-                && ((KeyEvent) event).getCode() == KeyCode.ENTER) {
-                    tfParent.positionCaret(tfParent.getText().length());
-              return null; // returning null indicates the event was consumed
-            }
-            return originalED.dispatchEvent(event, tail);
-          });
-          */
-          addEventHandler(KeyEvent.KEY_RELEASED, e -> {
-              if(e.getCode() == KeyCode.END){
+         * final EventDispatcher originalED = getEventDispatcher();
+         * setEventDispatcher((event, tail) -> { if (event.getEventType() ==
+         * KeyEvent.KEY_RELEASED && ((KeyEvent) event).getCode() == KeyCode.ENTER) {
+         * tfParent.positionCaret(tfParent.getText().length()); return null; //
+         * returning null indicates the event was consumed } return
+         * originalED.dispatchEvent(event, tail); });
+         */
+        addEventHandler(KeyEvent.KEY_RELEASED, e -> {
+            if (e.getCode() == KeyCode.END) {
                 tfParent.positionCaret(tfParent.getText().length());
-              }else if(e.getCode() == KeyCode.BEGIN){//DOESN'T WORK
+            } else if (e.getCode() == KeyCode.BEGIN) {// DOESN'T WORK
                 tfParent.positionCaret(0);
-              }else if(e.getCode() == KeyCode.LEFT){
+            } else if (e.getCode() == KeyCode.LEFT) {
                 tfParent.positionCaret(tfParent.getCaretPosition() - 1);
-              }else if(e.getCode() == KeyCode.RIGHT){
+            } else if (e.getCode() == KeyCode.RIGHT) {
                 tfParent.positionCaret(tfParent.getCaretPosition() + 1);
-              }
-          });
+            }
+        });
 
         getContent().add(lv);
         if (tfParent != null) {
             tfParentInit();
         }
-        lv.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> lvSelectionListener(newV));
+        lv.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> lvSelectionListener(oldV, newV));
         lv.focusedProperty().addListener((obs, oldV, newV) -> lvFocusedProperty(newV));
+        lv.setFocusTraversable(false);
 
         lv.setPrefHeight(200);
 

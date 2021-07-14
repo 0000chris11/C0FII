@@ -44,8 +44,12 @@ public class MSQLP {
     public static final int MOST_USE_ORDER = 3;
 
     private int order = DEFAULT_ORDER;
+    // ----------------------------------------------
+    public static final int AFTER = 0;
+    public static final int BEFORE = 1;
+    private int optionWhere;
     // COLUMN---------------------------------------------------
-    private Object addColumndefaultValue;
+    private Object defaultValue;
     private boolean nullValue = true;
     private boolean extraValue = false;
 
@@ -125,7 +129,7 @@ public class MSQLP {
             } else if (queryType.equals("SB")) {
                 ps = con.prepareStatement(sb.toString());
             }
-
+            System.out.println("ps update: " + ps);
             int i = ps.executeUpdate();
             if (iu != null) {
                 if (i > 0) {
@@ -136,8 +140,8 @@ public class MSQLP {
             }
             sb = null;
             iu = null;
-            //isql = null;
-            addColumndefaultValue = null;
+            // isql = null;
+            defaultValue = null;
             nullValue = true;
             extraValue = false;
             return true;
@@ -151,8 +155,8 @@ public class MSQLP {
             } else {
                 if (isql != null) {
                     isql.exception(e, null);
-                    e.printStackTrace();
                 }
+                e.printStackTrace();
             }
             return false;
         }
@@ -502,8 +506,8 @@ public class MSQLP {
     }
 
     // COLUMN=============================================
-    public void setAddColumnDefaultValue(Object addColumndefaultValue) {
-        this.addColumndefaultValue = addColumndefaultValue;
+    public void setDefaultValue(Object defaultValue) {
+        this.defaultValue = defaultValue;
     }
 
     public void setNullValue(boolean nullValue) {
@@ -514,15 +518,19 @@ public class MSQLP {
         this.extraValue = addColumnExtra;
     }
 
+    public void setAfterOrBeforeColumn(int optionWhere) {
+        this.optionWhere = optionWhere;
+    }
+
+    // ------------
     private void defaultAddColumn(String table, String newColumn, String type) {
         sb = new StringBuilder("ALTER TABLE ").append(table).append(" ");
         sb.append("ADD COLUMN").append(" ").append(newColumn).append(" ");
         sb.append(type);// PASS ALSO LENGTH
         sb.append(nullValue ? " " : " NOT NULL");
-        if (addColumndefaultValue != null) {
+        if (defaultValue != null) {
             sb.append(" DEFAULT ");
-            sb.append(addColumndefaultValue instanceof String ? "'" + addColumndefaultValue + "'"
-                    : addColumndefaultValue);
+            sb.append(defaultValue instanceof String ? "'" + defaultValue + "'" : defaultValue);
         }
         sb.append(extraValue ? " AUTO_INCREMENT" : "");
     }
@@ -537,11 +545,24 @@ public class MSQLP {
         }
     }
 
-    public boolean addColumn(String table, String newColumn, String type, String afterColumn) {
+    public boolean addColumn(String table, String newColumn, String type, String afterBeforeColumn) {
         try {
             // ALTER TABLE table_name ADD COLUMN col_name type AFTER col_name
             defaultAddColumn(table, newColumn, type);
-            sb.append(" AFTER").append(" ").append(afterColumn);
+            sb.append(optionWhere == AFTER ? " AFTER" : " BEFORE").append(" ").append(afterBeforeColumn);
+
+            return update(iu, "SB");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean dropColumn(String table, String column) {
+        try {
+            // ALTER TABLE table_name DROP COLUMN col_name
+            sb = new StringBuilder("ALTER TABLE ").append(table);
+            sb.append(" DROP COLUMN ").append(column);
 
             return update(iu, "SB");
         } catch (SQLException e) {
@@ -579,7 +600,7 @@ public class MSQLP {
         }
     }
 
-    public boolean setDefaultValue(String table, String column, Object defaultValue) {
+    public boolean addDefaultValue(String table, String column, Object defaultValue) {
         try {
             // ALTER TABLE table_name ALTER col_name SET DEFAULT col_value;
             sql = "ALTER TABLE " + table + " ALTER " + column + " "

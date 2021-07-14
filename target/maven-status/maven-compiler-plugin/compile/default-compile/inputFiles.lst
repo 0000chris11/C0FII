@@ -6,6 +6,7 @@ c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\c
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\methods\MTable.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\mysql\store\CallParam.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\javafx\ToggleGroupD.java
+c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\javafx\popup\PopupKV.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\swing\ComboBoxE.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\myInterfaces\SingleSelectionIAction.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\stores\QString.java
@@ -49,6 +50,7 @@ c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\s
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\methods\MKey.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\myListeners\SingleSelectionAction.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\stores\BooleanString.java
+c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\javafx\popup\PopupMessage.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\mysql\MSQL.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\swing\ListCustom.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\methods\MComp.java
@@ -57,6 +59,7 @@ c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\s
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\swing\MenuItemCustom.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\javafx\TextFieldAutoC.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\stores\StringObject.java
+c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\javafx\ZoomingPane.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\myInterfaces\SerializationExceptionAction.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\mysql\MSQL2.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\swing\TextFieldClock.java
@@ -94,12 +97,12 @@ c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\m
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\myListeners\ComboBoxsSelectionProperty.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\mysql\MSQLP.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\mysql\MSQLCreate.java
+c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\javafx\popup\PopupAutoC.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\myAClasses\MLayout.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\stores\CC.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\swing\TextFieldDCellEditor.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\myInterfaces\ISQL.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\myListeners\preClass\MultiSelection.java
-c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\javafx\PopupAutoC.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\methods\MGraphics.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\myListeners\ComboBoxsSelectionItem.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\stores\DInt.java
@@ -116,7 +119,6 @@ c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\t
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\custom\Custom.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\swing\TextAreaCustom.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\javafx\TimeLabel.java
+c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\javafx\popup\PopupMenu.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\swing\PanelGradient.java
 c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\stores\StringList_Int.java
-c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\javafx\PopupKV.java
-c:\Users\Christopher\Documents\NetBeansProjects\C0FII\src\main\java\com\cofii2\components\javafx\PopupMessage.java
