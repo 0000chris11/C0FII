@@ -203,8 +203,9 @@ public class MSQLCreate extends SQLInit {
 
       private void foreignKeys() {
             if (!listFK.isEmpty()) {
-                  String tableR = listFK.get(0).string2;
-                  sb.append(", CONSTRAINT fk_" + table + "__" + tableR + " FOREIGN KEY(");
+                  String databseR = listFK.get(0).string2;
+                  String tableR = listFK.get(0).string3;
+                  sb.append(", CONSTRAINT fk_" + table + "__" + databseR + "_" + tableR  + " FOREIGN KEY(");
                   // TEST CONSTRAINTS
                   for (int a = 0; a < listFK.size(); a++) {
                         sb.append(listFK.get(a).string1);
@@ -213,15 +214,18 @@ public class MSQLCreate extends SQLInit {
                               sb.append(", ");
                         }
                   }
-                  sb.append(") REFERENCES " + tableR + "(");
+                  sb.append(") REFERENCES " + tableR.substring(0, tableR.indexOf("__")) + "(");
+                  sb.append(tableR.replaceAll("[A-Za-z][A-Za-z0-9_]+__([A-Za-z_]+)", "$1"));
+                  sb.append(")");
+                  /*
                   for (int a = 0; a < listFK.size(); a++) {
-                        sb.append(listFK.get(a).string3);
+                        sb.append(tableR.substring(tableR.indexOf("__" + 2, tableR.length() - 1)));
 
                         if (a != listFK.size() - 1) {
                               sb.append(", ");
                         }
                   }
-                  sb.append(")");
+                  */
             }
       }
 
@@ -342,12 +346,12 @@ public class MSQLCreate extends SQLInit {
       }
 
       public void addAllForeignKeys(List<TString> FKS) {
-            listFK.clear();
-            for (TString x : FKS) {
+            listFK.clear();//ADD ALL -> RESET ALL
+            for (TString fk : FKS) {
                   if (listFK.isEmpty()) {
-                        listFK.add(x);
+                        listFK.add(fk);
                   } else {
-                        String tableR = x.string2;
+                        String tableR = fk.string2;
                         boolean match = false;
                         for (int a = 0; a < listFK.size(); a++) {
                               String tableRC = listFK.get(a).string2;
@@ -360,7 +364,7 @@ public class MSQLCreate extends SQLInit {
                               }
                         }
                         if (match) {
-                              listFK.add(x);
+                              listFK.add(fk);
                         }
                   }
             }

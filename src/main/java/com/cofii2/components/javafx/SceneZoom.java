@@ -45,26 +45,21 @@ public class SceneZoom {
 
     private void hbarVisiblePropertyChange(ObservableValue<? extends Boolean> observable, boolean oldValue,
             boolean newValue) {
-        if (newValue) {
-            double height = scene.getWindow().getHeight() + hBar.getHeight();
-            if (parent.getHeight() >= height) {
-                System.out.println("HEIGHT CHANGE");
-                // scene.getWindow().setHeight(height);
-                bottomPadding = hBar.getHeight();
-            } else {
-                bottomPadding = 0;
-                //parent.setPadding(Insets.EMPTY);
-            }
-        }else{
-            bottomPadding = 0;
-        }
-
+        /*
+         * if (newValue) { double height = scene.getWindow().getHeight() +
+         * hBar.getHeight(); if (parent.getHeight() >= height) {
+         * System.out.println("HEIGHT CHANGE"); // scene.getWindow().setHeight(height);
+         * bottomPadding = hBar.getHeight(); } else { bottomPadding = 0;
+         * //parent.setPadding(Insets.EMPTY); } }else{ bottomPadding = 0; }
+         */
+        bottomPadding = newValue ? hBar.getHeight() : 0;
         parent.setPadding(new Insets(0, rightPadding, bottomPadding, 0));
 
     }
 
     private void vbarVisiblePropertyChange(ObservableValue<? extends Boolean> observable, boolean oldValue,
             boolean newValue) {
+                /*
         if (newValue) {
             double width = scene.getWindow().getWidth() + vBar.getWidth();
             if (parent.getWidth() < width) {
@@ -72,14 +67,15 @@ public class SceneZoom {
                 // scene.getWindow().setWidth(scene.getWindow().getWidth() + vBar.getWidth() +
                 // 4);
                 rightPadding = vBar.getWidth();
-            }else{
+            } else {
                 rightPadding = 0;
             }
 
-        }else{
+        } else {
             rightPadding = 0;
         }
-
+        */
+        rightPadding = newValue ? vBar.getWidth() : 0;
         parent.setPadding(new Insets(0, rightPadding, bottomPadding, 0));
     }
 
