@@ -1,5 +1,8 @@
 package com.cofii2.components.javafx.popup;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javafx.geometry.Bounds;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -26,6 +29,7 @@ public class PopupAutoC extends Popup {
     private int sideOption = BOTTOM_SIDE;
 
     private String noItemsOption = "No distinct elements";
+    private String tagSeparator = "; ";
 
     private TextField tfParent;
     private ListView<String> lv = new ListView<>();
@@ -34,23 +38,33 @@ public class PopupAutoC extends Popup {
     private String[] lvOriginalItems;
 
     // QOL-------------------------------------
-    private String getAfterTag(String text) {
-        if (!text.isEmpty() && text.contains("; ")) {
-            text = text.substring(text.lastIndexOf("; ") + 2, text.length());
+    private String tagToSearchFor(String text) {
+        if (!text.isEmpty() && text.contains(tagSeparator)) {
+            String[] split = text.split(tagSeparator);
+            if (split.length > 1) {
+                text = split[split.length - 1];
+            } else {
+                text = "";
+            }
             // System.out.println("\ttext ; : " + text);
         }
         // System.out.println("getAfterTag TEXT: " + text);
         return text;
     }
 
-    private void setAfterTag(String newValue) {
-        StringBuilder text = new StringBuilder(tfParent.getText());
-        if (text.toString().contains("; ")) {
+    private void setToLast(String newValue) {
+        StringBuilder text = new StringBuilder(tfParent.getText() != null ? tfParent.getText() : "");
+        if (text.toString().contains(tagSeparator)) {
             // String text = getAfterTag(tf.getText());
-            String[] split = text.toString().split("; ");
+            Matcher matcher = Pattern.compile(tagSeparator).matcher(text);
+            int tagCount = 0;
+            while(matcher.find()){
+                tagCount++;
+            }
+            String[] split = text.toString().split(tagSeparator);
             text = new StringBuilder();
-            for (int a = 0; a < split.length - 1; a++) {
-                text.append(split[a]).append("; ");
+            for (int a = 0; a < tagCount; a++) {
+                text.append(split[a]).append(tagSeparator);
             }
             text.append(newValue);
             tfParent.setText(text.toString());
@@ -98,33 +112,34 @@ public class PopupAutoC extends Popup {
     private void listScrollControlSimpleWay(KeyEvent e) {
         int selected = lv.getSelectionModel().getSelectedIndex();
         if (e.getCode() == KeyCode.DOWN || e.getCode() == KeyCode.UP) {
-            if(lv.getSelectionModel().isEmpty()){
+            if (lv.getSelectionModel().isEmpty() && !lv.isFocused()) {
                 showPopup();
             }
 
-            tfParent.setText(lv.getSelectionModel().getSelectedItem());
-            tfParent.positionCaret(tfParent.getText() != null ? tfParent.getText().length() : 0);
-            if (e.getCode() == KeyCode.DOWN) {
-                lv.getSelectionModel().select(++selected);
-            } else if (e.getCode() == KeyCode.UP) {
-                lv.getSelectionModel().select(--selected);
+            // tfParent.setText(lv.getSelectionModel().getSelectedItem());
+            if (!lv.isFocused()) {
+                if (e.getCode() == KeyCode.DOWN) {
+                    lv.getSelectionModel().select(++selected);
+                } else if (e.getCode() == KeyCode.UP) {
+                    lv.getSelectionModel().select(--selected);
+                }
             }
-
-            tfParent.setText(lv.getSelectionModel().getSelectedItem());
+            // tfParent.setText(lv.getSelectionModel().getSelectedItem());
+            // setAfterTag(lv.getSelectionModel().getSelectedItem());
         }
     }
 
     private void search(KeyEvent e) {
         // lv.setVisible(true);
         showPopup();
-        if (e.getCode() != KeyCode.DOWN) {
+        //if (e.getCode() != KeyCode.DOWN) {
             lv.getItems().clear();
             lv.getItems().addAll(lvOriginalItems);
             if (!lv.getItems().get(0).equals(noItemsOption)) {
                 // System.out.println("\nSEARCH FUNCTION STARTS");
 
                 String text = tfParent.getText();
-                text = getAfterTag(text);
+                text = tagToSearchFor(text);
 
                 if (!tfParent.getText().isEmpty()) {
                     text = text.toLowerCase();
@@ -149,21 +164,14 @@ public class PopupAutoC extends Popup {
                 }
 
             }
-        }
+        //}
     }
 
     private void tfParentKeyReleased(KeyEvent e) {
         if (tfParent != null && lvOriginalItems != null) {
             // listScrollControl(e);
             listScrollControlSimpleWay(e);
-
-            if ((e.getCode().isLetterKey() || e.getCode() == KeyCode.BACK_SPACE || e.getCode() == KeyCode.SPACE
-                    /*|| e.getCode() == KeyCode.DOWN*/) && lvOriginalItems.length > 0) {
-                /*
-                 * if (e.getCode() == KeyCode.DOWN && lv.getSelectionModel().isEmpty()) {
-                 * lv.getSelectionModel().select(0);
-                 * tfParent.setText(lv.getSelectionModel().getSelectedItem()); }
-                 */
+            if ((e.getCode().isLetterKey() || e.getCode() == KeyCode.BACK_SPACE || e.getCode() == KeyCode.SPACE)) {
                 search(e);
             }
 
@@ -177,10 +185,9 @@ public class PopupAutoC extends Popup {
     }
 
     private void lvSelectionListener(String oldValue, String newValue) {
-        System.out.println("\noldValue: " + oldValue);
-        System.out.println("newValue: " + newValue);
-        if (tfParent != null && !tfParent.isFocused()) {
-            setAfterTag(newValue);
+        if (tfParent != null && newValue != null) {
+            setToLast(newValue);
+            tfParent.positionCaret(tfParent.getText() != null ? tfParent.getText().length() : 0);
 
         }
     }
@@ -220,14 +227,6 @@ public class PopupAutoC extends Popup {
     }
 
     public void init() {
-        /*
-         * final EventDispatcher originalED = getEventDispatcher();
-         * setEventDispatcher((event, tail) -> { if (event.getEventType() ==
-         * KeyEvent.KEY_RELEASED && ((KeyEvent) event).getCode() == KeyCode.ENTER) {
-         * tfParent.positionCaret(tfParent.getText().length()); return null; //
-         * returning null indicates the event was consumed } return
-         * originalED.dispatchEvent(event, tail); });
-         */
         addEventHandler(KeyEvent.KEY_RELEASED, e -> {
             if (e.getCode() == KeyCode.END) {
                 tfParent.positionCaret(tfParent.getText().length());
@@ -314,6 +313,14 @@ public class PopupAutoC extends Popup {
 
     public void setLv(ListView<String> lv) {
         this.lv = lv;
+    }
+
+    public String getTagSeparator() {
+        return tagSeparator;
+    }
+
+    public void setTagSeparator(String tagSeparator) {
+        this.tagSeparator = tagSeparator;
     }
 
 }

@@ -16,6 +16,7 @@ import com.cofii2.myInterfaces.IDataTooLong;
 import com.cofii2.myInterfaces.ISQL;
 import com.cofii2.myInterfaces.IUpdates;
 import com.cofii2.mysql.interfaces.IConnectionException;
+import com.cofii2.stores.CC;
 
 public class MSQLP {
 
@@ -31,6 +32,7 @@ public class MSQLP {
     private IUpdates iu;
     private ISQL isql;
     private IDataTooLong idata;
+    //private ExceptionAction exceptionAction;DELETE & CHANGE THE NAME OF ISQL FOR THIS
     // QUERY ACTION OPTIONS-----------------------------------------
     private static final int SQL = 0;
     private static final int STRING_BUILDER = 1;
@@ -91,7 +93,7 @@ public class MSQLP {
             ps = con.prepareStatement(sb.toString());
         }
 
-        System.out.println("ps: " + ps);
+        System.out.println(CC.YELLOW + "ps: " + ps + CC.RESET);
         rs = ps.executeQuery();
         if (ac != null) {
             ac.beforeQuery();
@@ -103,6 +105,20 @@ public class MSQLP {
                 ac.setData(rs, row);
             }
             ac.afterQuery(sql, rsValue);
+        }
+    }
+
+    private void queryRSAction(RSAction rsa, int sqlOp) throws SQLException {
+        if (sqlOp == SQL) {
+            ps = con.prepareStatement(sql);
+        } else if (sqlOp == STRING_BUILDER) {
+            ps = con.prepareStatement(sb.toString());
+        }
+
+        System.out.println(CC.YELLOW + "ps: " + ps + CC.RESET);
+        rs = ps.executeQuery();
+        if (rsa != null) {
+            rsa.actionRS(rs);
         }
     }
 
@@ -129,7 +145,7 @@ public class MSQLP {
             } else if (queryType.equals("SB")) {
                 ps = con.prepareStatement(sb.toString());
             }
-            System.out.println("ps update: " + ps);
+            //System.out.println("ps update: " + ps);
             int i = ps.executeUpdate();
             if (iu != null) {
                 if (i > 0) {
@@ -374,8 +390,27 @@ public class MSQLP {
                 sql = "SELECT " + column + " FROM " + table + " GROUP BY(" + column + ") ORDER BY COUNT(" + column
                         + ") DESC";
             }
-            System.out.println(sql);
+            //System.out.println(sql);
             queryAction(ac, SQL);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void selectDistinctColumn(String table, String column, RSAction rsa) {
+        try {
+            if (order == DEFAULT_ORDER) {
+                sql = "SELECT DISTINCT " + column + " FROM " + table;
+            } else if (order == ASC_ORDER) {
+                sql = "SELECT DISTINCT " + column + " FROM " + table + " ORDER BY " + column;
+            } else if (order == DESC_ORDER) {
+                sql = "SELECT DISTINCT " + column + " FROM " + table + " ORDER BY " + column + " DESC";
+            } else if (order == MOST_USE_ORDER) {
+                sql = "SELECT " + column + " FROM " + table + " GROUP BY(" + column + ") ORDER BY COUNT(" + column
+                        + ") DESC";
+            }
+            //System.out.println(sql);
+            queryRSAction(rsa, SQL);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -636,7 +671,6 @@ public class MSQLP {
             cols.forEach(col -> sb.append(col).append(","));
             sb.deleteCharAt(sb.length() - 1);// TEST
             sb.append(")");
-            System.out.println("TEST: " + sb.toString());
             return update(iu, "SB");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -681,7 +715,7 @@ public class MSQLP {
                 Arrays.asList(columnsReference).forEach(cr -> sb.append(cr).append(","));
                 sb.deleteCharAt(sb.length() - 1).append(")");
 
-                System.out.println(sb.toString());
+                //System.out.println(sb.toString());
                 return update(iu, "SB");
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -864,6 +898,9 @@ public class MSQLP {
                 ps.executeUpdate();
                 return true;
             } catch (SQLException e) {
+                if(isql != null){
+                    isql.exception(e, sb.toString());
+                }
                 e.printStackTrace();
                 return false;
             }
@@ -873,7 +910,7 @@ public class MSQLP {
         }
     }
 
-    public boolean executeUpdate(String sql) {
+    public boolean executeStringUpdate(String sql) {
         this.sql = sql;
         try {
 
@@ -894,4 +931,6 @@ public class MSQLP {
         }
 
     }
+    //GET & SETTERS ------------------------------------
+    
 }

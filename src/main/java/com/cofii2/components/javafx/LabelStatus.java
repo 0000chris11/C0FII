@@ -32,7 +32,7 @@ public class LabelStatus extends HBox {
         lbStatus.setText(text);
         lbStatus.setTextFill(color);
 
-        new Timeline(new KeyFrame(duration, e -> reset()));
+        new Timeline(new KeyFrame(duration, e -> reset())).play();
     }
 
     // ---------------------------------------------------
@@ -54,6 +54,7 @@ public class LabelStatus extends HBox {
 
         btnCloseStatus.setFont(Font.font(6));
 
+        //IF THE LABEL IS NOT THE DEFAULT COLOR -> btnCloseStatus IS SET TO VISIBLE
         lbStatus.textFillProperty().addListener(
                 (obs, oldValue, newValue) -> btnCloseStatus.setVisible(!newValue.equals((Paint) defaultColor)));
         btnCloseStatus.setOnAction(e -> reset());
