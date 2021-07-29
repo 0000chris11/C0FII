@@ -3,6 +3,7 @@ package com.cofii2.components.javafx.popup;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -36,6 +37,8 @@ public class PopupAutoC extends Popup {
     private ListViewSkin<?> skin;
     private VirtualFlow<?> vf;
     private String[] lvOriginalItems;
+
+    private EventHandler<KeyEvent> tfParentKeyReleasedListener = this::tfParentKeyReleased;
 
     // QOL-------------------------------------
     private String tagToSearchFor(String text) {
@@ -200,7 +203,9 @@ public class PopupAutoC extends Popup {
 
     // INIT--------------------------------------------
     private void tfParentInit() {
-        tfParent.addEventHandler(KeyEvent.KEY_RELEASED, this::tfParentKeyReleased);
+        tfParent.removeEventHandler(KeyEvent.KEY_RELEASED, tfParentKeyReleasedListener);
+        tfParent.addEventHandler(KeyEvent.KEY_RELEASED, tfParentKeyReleasedListener);
+        
         tfParent.focusedProperty().addListener((obs, oldV, newV) -> tfParentFocusedProperty(newV));
 
         if (tfParent.getScene() != null) {
