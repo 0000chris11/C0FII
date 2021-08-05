@@ -316,6 +316,21 @@ public class PopupAutoC extends Popup {
         lv.getItems().add(item);
     }
 
+    public void addAllItems(String... items){
+        lvOriginalItems.clear();
+        lv.getItems().clear();
+
+        List<String> list = Arrays.asList(items);
+        lvOriginalItems.addAll(list);
+        lv.getItems().addAll(list);
+    }
+    public void addAllItems(List<String> list){
+        lvOriginalItems.clear();
+        lv.getItems().clear();
+
+        lvOriginalItems.addAll(list);
+        lv.getItems().addAll(list);
+    }
     // GET & SETTERS--------------------------------------------
     public int getSearchOption() {
         return searchOption.intValue();

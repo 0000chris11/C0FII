@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.collections.MapChangeListener.Change;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
@@ -40,13 +41,24 @@ public class PopupKV extends Popup {
     private TextFlow textFlow = new TextFlow();
     private ObservableMap<String, Boolean> map = FXCollections.observableHashMap();
 
+    // -------------------------------------
+    /**
+     * Shows popup only if the parentNode is not null
+     */
+    public void showPopup() {
+        if (parentNode != null) {
+            Bounds sb = parentNode.localToScreen(parentNode.getBoundsInLocal());
+            show(parentNode, sb.getMinX(), sb.getMinY());
+        }
+    }
+
     // ------------------------------------
     private void elementsListener(Change<? extends String, ? extends Boolean> change) {
         String key = change.getKey();
         boolean valueAdded = change.getValueAdded();
 
         if (!key.contains(concat)) {
-            if (!change.wasRemoved() && change.wasAdded()) {//ADDING-------------------------------
+            if (!change.wasRemoved() && change.wasAdded()) {// ADDING-------------------------------
                 if (((Text) textFlow.getChildren().get(0)).getText().equals(noElementsWord)) {
                     textFlow.getChildren().clear();
                 }
@@ -63,12 +75,12 @@ public class PopupKV extends Popup {
                 textV.setFill(valueAdded ? FILL_TRUE : FILL_FALSE);
                 textFlow.getChildren().addAll(textK, textV);
 
-            } else if (change.wasRemoved() && change.wasAdded()) {//UPDATING-------------------------------
+            } else if (change.wasRemoved() && change.wasAdded()) {// UPDATING-------------------------------
                 // IDK HOW TO GET THE REMOVED KEY
                 String newValue = valueAdded ? valueTrue : valueFalse;
                 Text textV = new Text(newValue);
                 textV.setFill(valueAdded ? FILL_TRUE : FILL_FALSE);
-                //---------------------------
+                // ---------------------------
                 Text textK = (Text) textFlow.getChildren().stream().filter(e -> {
                     String element = ((Text) e).getText().replace(concat, "");
                     element = element.replaceAll("[\\n\\t]", "");
@@ -79,7 +91,7 @@ public class PopupKV extends Popup {
                         return false;
                     }
                 }).findFirst().orElse(null);
-                //---------------------------
+                // ---------------------------
                 if (textK != null) {
                     int index = textFlow.getChildren().indexOf(textK) + 1;
                     textFlow.getChildren().set(index, textV);
@@ -91,6 +103,7 @@ public class PopupKV extends Popup {
         }
 
     }
+
     // ------------------------------------
     private void init() {
         if (map.isEmpty()) {
@@ -99,7 +112,7 @@ public class PopupKV extends Popup {
             textFlow.getChildren().add(tx);
         } else {
             map.forEach((s, b) -> textFlow.getChildren().addAll(new Text(s + ": "),
-                    b.booleanValue() ? new Text(valueTrue) : new Text(valueFalse)));
+                    b.booleanValue() ? new Text(valueTrue + "\n") : new Text(valueFalse + "\n")));
         }
         map.addListener(this::elementsListener);
         // TOP-------------------------------
@@ -107,16 +120,17 @@ public class PopupKV extends Popup {
         Button btnX = new Button("x");
         btnX.setOnAction(e -> hide());
         btnX.setFont(Font.font(6));
-        btnX.setPrefWidth(8);
-        btnX.setPrefHeight(8);
-        region.prefHeightProperty().bind(btnX.prefHeightProperty());
-        region.prefWidthProperty().bind(btnX.prefWidthProperty());
+        btnX.setMaxWidth(8);
+        btnX.setMaxHeight(8);
+        //region.prefHeightProperty().bind(btnX.prefHeightProperty());
+        //region.prefWidthProperty().bind(btnX.prefWidthProperty());
         HBox hbox = new HBox(region, btnX);
         HBox.setHgrow(region, Priority.ALWAYS);
         HBox.setHgrow(hbox, Priority.NEVER);
 
         getContent().add(new VBox(hbox, textFlow));
     }
+
     // ------------------------------------
     public PopupKV() {
         init();
