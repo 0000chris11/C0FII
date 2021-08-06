@@ -43,12 +43,13 @@ public class PopupAutoC extends Popup {
 
     private String noItemsOption = "No distinct elements";
     private String tagSeparator = "; ";
-
+    //---------------------------------------------
     private TextField tfParent;
     private ListView<String> lv = new ListView<>();
     private ListViewSkin<?> skin;
     private VirtualFlow<?> vf;
     private List<String> lvOriginalItems = new ArrayList<>();
+    private List<String> noSearchableItems = new ArrayList<>();
 
     private EventHandler<KeyEvent> tfParentKeyReleasedListener = this::tfParentKeyReleased;
 
@@ -216,7 +217,7 @@ public class PopupAutoC extends Popup {
     }
 
     private void lvSelectionListener(String oldValue, String newValue) {
-        if (tfParent != null && newValue != null) {
+        if (tfParent != null && newValue != null && noSearchableItems.stream().noneMatch(s -> s.equals(newValue))) {
             setToLast(newValue);
             tfParent.positionCaret(tfParent.getText() != null ? tfParent.getText().length() : 0);
 
@@ -391,6 +392,14 @@ public class PopupAutoC extends Popup {
 
     public void setShowOption(int showOption) {
         this.showOption.setValue(showOption);
+    }
+
+    public List<String> getNoSearchableItems() {
+        return noSearchableItems;
+    }
+
+    public void setNoSearchableItems(List<String> noSearchableItems) {
+        this.noSearchableItems = noSearchableItems;
     }
 
 }

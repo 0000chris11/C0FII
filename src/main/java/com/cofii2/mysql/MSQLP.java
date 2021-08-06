@@ -376,13 +376,28 @@ public class MSQLP {
 
     }
 
-    public Object[] selectValues(String table, String columnWhere, Object valueWhere) {
+    /**
+     * Select an undetermine amount values from the given table and column
+     * 
+     * @param table table to search on
+     * @param columnSelect column to pick the values from
+     * @param columnWhere column where
+     * @param valueWhere value where
+     * @return values that match this query
+     */
+    public Object[] selectValues(String table, String columnSelect, String columnWhere, Object valueWhere) {
         try {
-            if (valueWhere instanceof Integer) {
-                sql = "SELECT " + columnWhere + " FROM " + table + " WHERE " + columnWhere + " = " + valueWhere;
-            } else {
-                sql = "SELECT " + columnWhere + " FROM " + table + " WHERE " + columnWhere + " = '" + valueWhere + "'";
+            sb = new StringBuilder("SELECT ").append(columnSelect).append(" FROM ").append(table);
+            sb.append(" WHERE ").append(columnWhere).append(" = ?");
+
+            ps = con.prepareStatement(sb.toString());
+            if(valueWhere instanceof String){
+            ps.setString(1, valueWhere.toString());
+            }else if(valueWhere instanceof Integer){
+                ps.setInt(1, (int) valueWhere);
             }
+
+            rs = ps.executeQuery();
             List<Object> returnValue = new ArrayList<>();
             while (rs.next()) {
                 if (valueWhere instanceof Integer) {
