@@ -7,7 +7,7 @@ import javafx.scene.control.Tooltip;
 public class TooltipCustom extends Tooltip{
     
     @Override
-    protected void show() {
+    protected void showPopup() {
         System.out.println(CC.CYAN + "TooltipCustom SHOW" + CC.RESET);
         hide();
         //super.show();

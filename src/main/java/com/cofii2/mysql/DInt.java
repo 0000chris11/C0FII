@@ -7,7 +7,7 @@ package com.cofii2.mysql;
 
 /**
  *
- * @author Christopher
+ * @author C0FII
  */
 class DInt {
       

@@ -10,6 +10,11 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -36,8 +41,43 @@ public class MImage {
       //++++++++++++++++++++++++++++++++++++++++++++++++
       public static void setImageIcon(JButton btn, String url) {
             ImageIcon ic = new ImageIcon(url);
-            Icon i = (Icon) ic;
+            Icon i = ic;
             btn.setIcon(i);
+      }
+
+      public static ImageIcon resizeIcon(String path, int w, int h) {
+            BufferedImage bimage;
+            int cl = colors.length;
+            
+            if (option != DRAW_CIRCLES) {
+                  bimage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+            }else{
+                  bimage = new BufferedImage((w * cl) + 2, h, BufferedImage.TYPE_INT_ARGB);
+            }
+            Graphics2D g2 = bimage.createGraphics();
+
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+            ImageIcon ii = new ImageIcon(path);
+            if (option == DRAW_IMAGE) {
+                  g2.drawImage(ii.getImage(), 0, 0, w, h, null);
+            } else if (option == DRAW_CIRCLE) {
+                  g2.setColor(color);
+                  g2.fillOval(0, 0, w, h);
+            } else if (option == DRAW_CIRCLES) {
+                  int x = 0;
+                  int y = 0;
+                  for (int a = 0; a < colors.length; a++) {
+                        g2.setColor(colors[a]);
+                        g2.fillOval(x, y, w, h);
+                        x += w + 2;
+                        //y += h + 2;
+
+                  }
+            }
+            //System.out.println("------------------------Icon2 Width: " + icon2.getIconWidth() + "\tHeight: " + icon2.getIconHeight());
+            return new ImageIcon(bimage);
+            //++++++++++++++++++++++++++++++++++++++++++++++++++
       }
 
       public static ImageIcon resizeIcon(ImageIcon ii, int w, int h) {
@@ -69,11 +109,8 @@ public class MImage {
 
                   }
             }
-
-            ImageIcon icon2 = new ImageIcon(bimage);
-
             //System.out.println("------------------------Icon2 Width: " + icon2.getIconWidth() + "\tHeight: " + icon2.getIconHeight());
-            return icon2;
+            return new ImageIcon(bimage);
             //++++++++++++++++++++++++++++++++++++++++++++++++++
       }
 
@@ -93,12 +130,34 @@ public class MImage {
                   g2.fillOval(0, 0, w, h);
             }
 
-            ImageIcon icon2 = new ImageIcon(bimage);
-
-            return icon2;
+            return new ImageIcon(bimage);
       }
 
-      public static Dimension getScaledDownHeight_AR(int w, int h, int newHeight) {
+      public static BufferedImage changeImageColorOfOneColor(File file, Color color) {
+            BufferedImage bimage = null;
+            try {
+                  bimage = ImageIO.read(file);
+
+                  int w = bimage.getWidth();
+                  int h = bimage.getHeight();
+
+                  for (int a = 0; a < h; a++) {
+                        for (int b = 0; b < w; b++) {
+                              int rgb = bimage.getRGB(b, a);
+                              //System.out.println("RGB on [" + rgb + "]");
+                              if (rgb != 0) {
+                                    //PAINTING ONLY WHEN THERE IS COLOR
+                                    bimage.setRGB(b, a, color.getRGB());
+                              }
+                        }
+                  }
+            } catch (IOException ex) {
+                  ex.printStackTrace();
+            }
+            return bimage;
+      }
+
+      public static Dimension getScaledDownHeightAR(int w, int h, int newHeight) {
             int width = w;
             int height = h;
             int newWidth = width;
@@ -109,7 +168,7 @@ public class MImage {
             return new Dimension(newWidth, newHeight);
       }
 
-      public static Dimension getScaledDownHeight_AR(Dimension dimension, int newHeight) {
+      public static Dimension getScaledDownHeightAR(Dimension dimension, int newHeight) {
             int width = dimension.width;
             int height = dimension.height;
             int newWidth = width;
@@ -120,7 +179,7 @@ public class MImage {
             return new Dimension(newWidth, newHeight);
       }
 
-      public static Dimension getScaledDownWidth_AR(int w, int h, int newWidth) {
+      public static Dimension getScaledDownWidthAR(int w, int h, int newWidth) {
             int width = w;
             int height = h;
             int newHeight = height;
@@ -131,7 +190,7 @@ public class MImage {
             return new Dimension(newHeight, newWidth);
       }
 
-      public static Dimension getScaledDownWidth_AR(Dimension dimension, int newWidth) {
+      public static Dimension getScaledDownWidthAR(Dimension dimension, int newWidth) {
             int width = dimension.width;
             int height = dimension.height;
             int newHeight = height;
@@ -142,7 +201,7 @@ public class MImage {
             return new Dimension(newHeight, newWidth);
       }
 
-      public static Dimension getScaledDownDimension_AR(Dimension dimension, Dimension newDimension) {
+      public static Dimension getScaledDownDimensionAR(Dimension dimension, Dimension newDimension) {
             int width = dimension.width;
             int height = dimension.height;
             int newHeight = newDimension.height;
@@ -159,7 +218,7 @@ public class MImage {
             return new Dimension(newHeight, newWidth);
       }
 
-      public static Dimension getScaledDownDimension_AR(int w, int h, int nw, int nh) {
+      public static Dimension getScaledDownDimensionAR(int w, int h, int nw, int nh) {
             int width = w;
             int height = h;
             int newHeight = nw;

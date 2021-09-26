@@ -14,6 +14,11 @@ import javafx.util.Duration;
 
 public class LabelStatus extends HBox {
 
+    // LB POSITION----------------------------------
+    public static final int LEFT = 0;
+    public static final int RIGHT = 1;
+    private int lbPos = LEFT;
+    // ---------------------------------------------
     private String defaultText = "Waiting for action";
     private Color defaultColor = Color.WHITE;
 
@@ -36,8 +41,8 @@ public class LabelStatus extends HBox {
     }
 
     // ---------------------------------------------------
-    private void reset() {
-        lbStatus.setText(defaultText);
+    public void reset() {
+        lbStatus.setText(defaultText != null ? defaultText : "");
         lbStatus.setTextFill(defaultColor);
 
         btnCloseStatus.setVisible(false);
@@ -54,14 +59,16 @@ public class LabelStatus extends HBox {
 
         btnCloseStatus.setFont(Font.font(6));
 
-        //IF THE LABEL IS NOT THE DEFAULT COLOR -> btnCloseStatus IS SET TO VISIBLE
+        // IF THE LABEL IS NOT THE DEFAULT COLOR -> btnCloseStatus IS SET TO VISIBLE
         lbStatus.textFillProperty().addListener(
                 (obs, oldValue, newValue) -> btnCloseStatus.setVisible(!newValue.equals((Paint) defaultColor)));
         btnCloseStatus.setOnAction(e -> reset());
 
-        
-        
-        getChildren().addAll(lbStatus, region, btnCloseStatus);
+        if (lbPos == LEFT) {
+            getChildren().addAll(lbStatus, region, btnCloseStatus);
+        } else if(lbPos == RIGHT){
+            getChildren().addAll(region, lbStatus, btnCloseStatus);
+        }
     }
 
     // ---------------------------------------------------
@@ -71,6 +78,12 @@ public class LabelStatus extends HBox {
 
     public LabelStatus(String defautlText) {
         this.defaultText = defautlText;
+        init();
+    }
+
+    public LabelStatus(String defautlText, int lbPos) {
+        this.defaultText = defautlText;
+        this.lbPos = lbPos;
         init();
     }
     // ---------------------------------------------------
@@ -105,6 +118,14 @@ public class LabelStatus extends HBox {
 
     public void setBtnCloseStatus(Button btnCloseStatus) {
         this.btnCloseStatus = btnCloseStatus;
+    }
+
+    public int getLbPos() {
+        return lbPos;
+    }
+
+    public void setLbPos(int lbPos) {
+        this.lbPos = lbPos;
     }
 
 }

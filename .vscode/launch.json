@@ -1,0 +1,13 @@
+{
+    "version": "0.6.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch DragTest",
+            "request": "launch",
+            "vmArgs": "--module-path C:/C0F/Programming/JAVA/Programs/javafx-sdk-11.0.2/lib --add-modules javafx.controls,javafx.fxml",
+            "mainClass": "com.cofii2.components.javafx.DragTest",
+            "projectName": "C0FII"
+        }
+    ]
+}

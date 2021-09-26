@@ -77,10 +77,19 @@ public class MSQLCreate extends SQLInit {
 
       }
 
+      public void use(String database) {
+            try {
+                sql = "USE " + database;
+                update(null);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
       public boolean createTable(String table, String[] columnsNames, String[] columnsTypes) {
             try {
+                  table = table.replace(" ", "_");
                   this.table = table;
-                  sb = new StringBuilder("CREATE TABLE " + table.replace(" ", "_") + "(");
+                  sb = new StringBuilder("CREATE TABLE " + table + "(");
                   // sql = "CREATE TABLE " + table.replaceAll(" ", "_") + "(";
 
                   int length = columnsNames.length;

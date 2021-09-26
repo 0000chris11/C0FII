@@ -1,5 +1,9 @@
 package com.cofii2.components.javafx;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javafx.application.Platform;
 import javafx.scene.control.Label;
 
 public class TimeLabel extends Label {
@@ -8,6 +12,25 @@ public class TimeLabel extends Label {
     private int su = 0;
     private int sd = 0;
     private int mu = 0;
+
+    private Timer timer;
+
+    public void start() {
+        resetTimer();
+
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> setTimer());
+            }
+
+        }, 0, 100);
+
+    }
+    public void stop(){
+        timer.cancel();
+    }
 
     public void setTimer() {
         msu++;
@@ -35,7 +58,8 @@ public class TimeLabel extends Label {
         }
         setText((mu) + ":" + (sd) + (su) + ":" + (msu));
     }
-    public void resetTimer(){
+
+    public void resetTimer() {
         setText("0:00:0");
     }
 }

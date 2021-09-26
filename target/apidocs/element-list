@@ -4,6 +4,7 @@ com.cofii2.components.javafx.popup
 com.cofii2.components.javafx.sheet
 com.cofii2.components.swing
 com.cofii2.custom
+com.cofii2.encryption
 com.cofii2.methods
 com.cofii2.myAbsClasses
 com.cofii2.myAClasses
@@ -11,8 +12,10 @@ com.cofii2.myInterfaces
 com.cofii2.myListeners
 com.cofii2.myListeners.preClass
 com.cofii2.mysql
+com.cofii2.mysql.enums
 com.cofii2.mysql.interfaces
 com.cofii2.mysql.store
 com.cofii2.stores
 com.cofii2.textControl
 com.cofii2.textControl.javafx
+com.cofii2.xml

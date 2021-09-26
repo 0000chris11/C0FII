@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,7 +16,11 @@ import com.cofii2.myInterfaces.IActions;
 import com.cofii2.myInterfaces.IDataTooLong;
 import com.cofii2.myInterfaces.ISQL;
 import com.cofii2.myInterfaces.IUpdates;
+import com.cofii2.mysql.enums.QueryResult;
 import com.cofii2.mysql.interfaces.IConnectionException;
+import com.cofii2.mysql.interfaces.IQueryResult;
+import com.cofii2.mysql.interfaces.IResultAndException;
+import com.cofii2.mysql.store.KeyPassword;
 import com.cofii2.stores.CC;
 
 public class MSQLP {
@@ -55,8 +60,13 @@ public class MSQLP {
     private Object defaultValue;
     private boolean nullValue = true;
     private boolean extraValue = false;
+    private boolean insertIgnore = false;
+
+    private boolean batchIgnore = false;
 
     private String constraint = null;
+    // ROW--------------------------------------
+    private KeyPassword keyPassword;
 
     // CONSTRUCTORS-------------------------------------------------------
     public MSQLP(String url) {
@@ -87,7 +97,7 @@ public class MSQLP {
     }
 
     // QUERYS/UPDATES DEFAULT ACTION-----------------------------------
-    private void queryAction(IActions ac, int sqlOp) throws SQLException {
+    private void queryIAction(IActions ac, int sqlOp) throws SQLException {
         if (sqlOp == SQL) {
             ps = con.prepareStatement(sql);
         } else if (sqlOp == STRING_BUILDER) {
@@ -98,6 +108,7 @@ public class MSQLP {
         rs = ps.executeQuery();
         if (ac != null) {
             ac.beforeQuery();
+
             int row = 0;
             boolean rsValue = false;
             while (rs.next()) {
@@ -105,10 +116,24 @@ public class MSQLP {
                 rsValue = true;
                 ac.setData(rs, row);
             }
+
             ac.afterQuery(sql, rsValue);
 
             ac = null;
         }
+    }
+
+    private void queryQRAction(QueryResult qr, int sqlOp) throws SQLException {
+        if (sqlOp == SQL) {
+            ps = con.prepareStatement(sql);
+        } else if (sqlOp == STRING_BUILDER) {
+            ps = con.prepareStatement(sb.toString());
+        }
+
+        System.out.println(CC.YELLOW + "ps: " + ps + CC.RESET);
+        rs = ps.executeQuery();
+        qr.setValue(QueryResult.VALUES);
+        qr.setResultSet(rs);
     }
 
     private void queryRSAction(RSAction rsa, int sqlOp) throws SQLException {
@@ -122,6 +147,37 @@ public class MSQLP {
         rs = ps.executeQuery();
         if (rsa != null) {
             rsa.actionRS(rs);
+        }
+    }
+
+    private void query4tAttemp(IResultAndException irae, int sqlOp) {
+        try {
+            if (sqlOp == SQL) {
+                ps = con.prepareStatement(sql);
+            } else if (sqlOp == STRING_BUILDER) {
+                ps = con.prepareStatement(sb.toString());
+            }
+
+            System.out.println(CC.YELLOW + "ps: " + ps + CC.RESET);
+            rs = ps.executeQuery();
+
+            int row = 0;
+            boolean rsValue = false;
+            while (rs.next()) {
+                row++;
+                rsValue = true;
+                irae.action(rs, true, null);
+            }
+
+            if (!rsValue) {
+                irae.action(null, false, null);
+            }
+        } catch (SQLException ex) {
+            try {
+                irae.action(null, false, ex);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -307,7 +363,7 @@ public class MSQLP {
     public void selectUsers(IActions ac) {
         try {
             sql = "SELECT USER FROM mysql.user";
-            queryAction(ac, SQL);
+            queryIAction(ac, SQL);
         } catch (SQLException e) {
             ac.exception(e, sql);
 
@@ -317,7 +373,7 @@ public class MSQLP {
     public void selectDatabases(IActions ac) {
         try {
             sql = "SHOW DATABASES";
-            queryAction(ac, SQL);
+            queryIAction(ac, SQL);
         } catch (SQLException e) {
             ac.exception(e, sql);
         }
@@ -326,20 +382,49 @@ public class MSQLP {
     public void selectTables(IActions ac) {
         try {
             sql = "SHOW TABLES";
-            queryAction(ac, SQL);
+            queryIAction(ac, SQL);
         } catch (SQLException e) {
             ac.exception(e, sql);
         }
+    }
+
+    public void selectTables(IResultAndException irae) {
+        sql = "SHOW TABLES";
+        query4tAttemp(irae, SQL);
+        try {
+            irae.action(rs, false, null);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
     }
 
     // ROWS------------------------------------
     public void selectData(String table, IActions ac) {
         try {
             sql = "SELECT * FROM " + table;
-            queryAction(ac, SQL);
+            queryIAction(ac, SQL);
         } catch (SQLException e) {
             ac.exception(e, sql);
         }
+    }
+
+    public void selectData(String table, IQueryResult iqr) {
+        QueryResult qr = new QueryResult();
+        try {
+            sql = "SELECT * FROM " + table;
+            queryQRAction(qr, SQL);
+        } catch (SQLException e) {
+            qr.setValue(QueryResult.EXCEPTION);
+            qr.setSqlException(e);
+        } finally {
+            iqr.queryAction(qr);
+        }
+    }
+
+    public void selectData(String table, IResultAndException irae) {
+        sql = "SELECT * FROM " + table;
+        query4tAttemp(irae, SQL);
     }
 
     public void selectDataWhere(String table, String column, Object valueWhere, IActions ac) {
@@ -351,10 +436,41 @@ public class MSQLP {
                 sql += valueWhere.toString();
             }
 
-            queryAction(ac, SQL);
+            queryIAction(ac, SQL);
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void selectDataWhere(String table, String column, Object valueWhere, IQueryResult iqr) {
+        QueryResult qr = new QueryResult();
+        try {
+            sql = "SELECT * FROM " + table + " WHERE " + column + " = ";
+            if (valueWhere instanceof String) {
+                sql += " \"" + valueWhere.toString() + "\"";
+            } else if (valueWhere instanceof Integer) {
+                sql += valueWhere.toString();
+            }
+
+            queryQRAction(qr, SQL);
+        } catch (SQLException e) {
+            qr.setValue(QueryResult.EXCEPTION);
+            qr.setSqlException(e);
+        } finally {
+            iqr.queryAction(qr);
+        }
+    }
+
+    public void selectDataWhere(String table, String columnWhere, Object valueWhere, IResultAndException irae) {
+        sql = "SELECT * FROM " + table + " WHERE " + columnWhere + " = ";
+        if (valueWhere instanceof String) {
+            sql += " \"" + valueWhere.toString() + "\"";
+        } else if (valueWhere instanceof Integer) {
+            sql += valueWhere.toString();
+        }
+
+        query4tAttemp(irae, SQL);
+
     }
 
     public ResultSet selectRow(String table, String columnWhere, Object valueWhere) {
@@ -379,10 +495,10 @@ public class MSQLP {
     /**
      * Select an undetermine amount values from the given table and column
      * 
-     * @param table table to search on
+     * @param table        table to search on
      * @param columnSelect column to pick the values from
-     * @param columnWhere column where
-     * @param valueWhere value where
+     * @param columnWhere  column where
+     * @param valueWhere   value where
      * @return values that match this query
      */
     public Object[] selectValues(String table, String columnSelect, String columnWhere, Object valueWhere) {
@@ -391,24 +507,48 @@ public class MSQLP {
             sb.append(" WHERE ").append(columnWhere).append(" = ?");
 
             ps = con.prepareStatement(sb.toString());
-            if(valueWhere instanceof String){
-            ps.setString(1, valueWhere.toString());
-            }else if(valueWhere instanceof Integer){
+            if (valueWhere instanceof String) {
+                ps.setString(1, valueWhere.toString());
+            } else if (valueWhere instanceof Integer) {
                 ps.setInt(1, (int) valueWhere);
             }
 
             rs = ps.executeQuery();
+            int columnType = rs.getMetaData().getColumnType(1);
             List<Object> returnValue = new ArrayList<>();
             while (rs.next()) {
-                if (valueWhere instanceof Integer) {
+                if (columnType == Types.INTEGER) {
                     returnValue.add(rs.getInt(1));
-                } else if (valueWhere instanceof String) {
+                } else if (columnType == Types.CHAR || columnType == Types.VARCHAR) {
                     returnValue.add(rs.getString(1));
                 }
             }
 
-            queryAction(null, SQL);
-            return returnValue.toArray(new String[returnValue.size()]);
+            queryIAction(null, SQL);
+            return returnValue.toArray(new Object[returnValue.size()]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new Object[0];
+        }
+    }
+
+    public Object[] selectValues(String table, String columnSelect, int limit) {
+        try {
+            sb = new StringBuilder();
+            sb.append("SELECT ").append(columnSelect).append(" FROM ").append(table);
+            sb.append(" LIMIT ").append(limit);
+
+            ps = con.prepareStatement(sb.toString());
+            System.out.println(CC.YELLOW + "ps: " + ps.toString() + CC.RESET);
+            ps.execute();
+
+            rs = ps.getResultSet();
+            List<Object> list = new ArrayList<>();
+            while (rs.next()) {
+                list.add(rs.getObject(1));
+            }
+
+            return list.toArray(new Object[list.size()]);
         } catch (SQLException e) {
             e.printStackTrace();
             return new Object[0];
@@ -419,7 +559,7 @@ public class MSQLP {
     public void selectColumns(String table, IActions ac) {
         try {
             sql = "SHOW COLUMNS FROM " + table;
-            queryAction(ac, SQL);
+            queryIAction(ac, SQL);
         } catch (SQLException e) {
             ac.exception(e, sql);
         }
@@ -438,7 +578,7 @@ public class MSQLP {
                         + ") DESC";
             }
             // System.out.println(sql);
-            queryAction(ac, SQL);
+            queryIAction(ac, SQL);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -463,6 +603,20 @@ public class MSQLP {
         }
     }
 
+    public void selectDistinctColumn(String table, String column, IResultAndException irae){
+        if (order == DEFAULT_ORDER) {
+            sql = "SELECT DISTINCT " + column + " FROM " + table;
+        } else if (order == ASC_ORDER) {
+            sql = "SELECT DISTINCT " + column + " FROM " + table + " ORDER BY " + column;
+        } else if (order == DESC_ORDER) {
+            sql = "SELECT DISTINCT " + column + " FROM " + table + " ORDER BY " + column + " DESC";
+        } else if (order == MOST_USE_ORDER) {
+            sql = "SELECT " + column + " FROM " + table + " GROUP BY(" + column + ") ORDER BY COUNT(" + column
+                    + ") DESC";
+        }
+
+        query4tAttemp(irae, SQL);
+    }
     // KEYS-------------------------------------------
     public void selectKeysInDatabase(String database, IActions ac) {
         try {
@@ -470,7 +624,7 @@ public class MSQLP {
                     + "WHERE (t.constraint_type='PRIMARY KEY' OR t.constraint_type= 'FOREIGN KEY') "
                     + "AND t.table_schema ='" + database + "' " + "ORDER BY t.table_name";
 
-            queryAction(ac, SQL);
+            queryIAction(ac, SQL);
         } catch (SQLException e) {
             ac.exception(e, sql);
         }
@@ -485,7 +639,7 @@ public class MSQLP {
             whereSet("t.table_schema", " OR ", databases, false);
             sb.append(")");
 
-            queryAction(ac, NONE);
+            queryIAction(ac, NONE);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -522,7 +676,7 @@ public class MSQLP {
     public void executeQuery(String sql, IActions ac) {
         try {
             this.sql = sql;
-            queryAction(ac, SQL);
+            queryIAction(ac, SQL);
         } catch (SQLException e) {
             ac.exception(e, sql);
         }
@@ -532,49 +686,19 @@ public class MSQLP {
     // DATABASES-----------------------------------------------
     public void use(String database) {
         try {
-            sql = "USES " + database;
-            queryAction(null, SQL);
+            sql = "USE " + database;
+            queryIAction(null, SQL);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * Insert on the given table
-     * 
-     * @param table  table to insert on
-     * @param values the new values for the table (only String and Integer allowed)
-     * @return true if query succed it
-     */
-    public boolean insert(String table, Object[] values) {
+    public boolean createDatabase(String database) {
         try {
-            sb = new StringBuilder("INSERT INTO " + table + " VALUES(");
-            for (int a = 0; a < values.length; a++) {
-                sb.append("?");
-                if (a != values.length - 1) {
-                    sb.append(", ");
-                }
-            }
-            sb.append(")");
-            ps = con.prepareStatement(sb.toString());
-            for (int a = 0; a < values.length; a++) {
-                if (values[a] != null) {
-                    if (values[a] instanceof String) {
-                        ps.setString((a + 1), values[a].toString());
-                    } else if (values[a] instanceof Integer) {
-                        ps.setInt((a + 1), (int) values[a]);
-                    } else {
-                        throw new IllegalArgumentException("C0FII: Only String and Integer");
-                    }
-                } else {
-                    ps.setObject((a + 1), null);
-                }
-            }
-
-            ps.executeUpdate();
-            return true;
+            sb = new StringBuilder("CREATE DATABASE ");
+            sb.append(database);
+            return update(null, "SB");
         } catch (SQLException e) {
-
             e.printStackTrace();
             return false;
         }
@@ -789,6 +913,76 @@ public class MSQLP {
 
     // ROW==================================================
     /**
+     * Insert on the given table
+     * 
+     * @param table  table to insert on
+     * @param values the new values for the table (only String and Integer allowed)
+     * @return true if query succed it
+     */
+    public boolean insert(String table, Object[] values) {
+        try {
+            sb = new StringBuilder();
+            sb.append("INSERT ").append(insertIgnore ? "IGNORE INTO " : "INTO ");
+            sb.append(table).append(" VALUES(");
+            for (int a = 0; a < values.length; a++) {
+                if (keyPassword != null) {
+                    if (keyPassword.getColumnNumber() == (a + 1)) {
+                        sb.append("AES_ENCRYPT(\"");
+                        sb.append(keyPassword.getKeyName()).append("\",\"");
+                        sb.append(keyPassword.getPassword()).append("\")");
+                    } else {
+                        sb.append("?");
+                    }
+                } else {
+                    sb.append("?");
+                }
+
+                if (a != values.length - 1) {
+                    sb.append(", ");
+                }
+            }
+            sb.append(")");
+            ps = con.prepareStatement(sb.toString());
+            int keyColumn = -1;
+            int forSize = values.length;
+            for (int a = 0; a < forSize; a++) {
+                if (keyPassword != null) {
+                    if (keyPassword.getColumnNumber() == (a + 1)) {
+                        keyColumn = a;
+                        --forSize;
+                        if (a >= forSize) {
+                            break;
+                        }
+                    }
+                }
+
+                if (values[a] != null) {
+                    if (values[a] instanceof String) {
+                        ps.setString((a + 1), values[a].toString());
+                    } else if (values[a] instanceof Integer) {
+                        ps.setInt((a + 1), (int) values[a]);
+                    } else {
+                        throw new IllegalArgumentException("C0FII: Only String and Integer");
+                    }
+                } else {
+                    ps.setObject((a + 1), null);
+                }
+
+            }
+
+            ps.executeUpdate();
+            keyPassword = null;
+            return true;
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+            return false;
+        } finally {
+            insertIgnore = false;
+        }
+    }
+
+    /**
      * Delete a row from a table
      * 
      * @param table      table where the row will be deleted
@@ -981,7 +1175,10 @@ public class MSQLP {
             return false;
         }
     }
+    //BATCH------------------------------------------
+    public void addBatch(){
 
+    }
     // CLOSE---------------------------------------
     public void close() {
         try {
@@ -993,5 +1190,21 @@ public class MSQLP {
 
     }
     // GET & SETTERS ------------------------------------
+
+    public KeyPassword getKeyPassword() {
+        return keyPassword;
+    }
+
+    public void setKeyPassword(KeyPassword keyPassword) {
+        this.keyPassword = keyPassword;
+    }
+
+    public boolean isInsertIgnore() {
+        return insertIgnore;
+    }
+
+    public void setInsertIgnore(boolean insertIgnore) {
+        this.insertIgnore = insertIgnore;
+    }
 
 }
